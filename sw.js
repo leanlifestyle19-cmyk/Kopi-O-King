@@ -1,18 +1,24 @@
-// ── Kopi O King Service Worker ───────────────────────────────────────────────
-// M1: Bump this on EVERY index.html deploy — never skip
-const CACHE = 'kok-20260625b';
+// FamChat Service Worker
+// Cache version — bump this string to force cache refresh across all clients
+const CACHE = 'fc-v13';
 
-// M16: List every external API host here. Currently none — fully offline game.
-const BYPASS = [];
+// Firebase CDN domains that must never be SW-cached (live data)
+const BYPASS = ['gstatic.com','firebaseio.com','googleapis.com','firebaseapp.com'];
 
-// M4: Use cache.add() individually — NOT cache.addAll() (fails atomically)
+// ──────────────────────────────────────────────────────────────────
+// INSTALL — fetch the app shell individually (never cache.addAll)
+// ──────────────────────────────────────────────────────────────────
 self.addEventListener('install', e => {
   e.waitUntil(
-    caches.open(CACHE).then(c => c.add('./index.html'))
+    caches.open(CACHE)
+      .then(cache => cache.add('./index.html'))
+      .then(() => self.skipWaiting())
   );
-  self.skipWaiting();
 });
 
+// ──────────────────────────────────────────────────────────────────
+// ACTIVATE — delete old caches, claim all clients immediately
+// ──────────────────────────────────────────────────────────────────
 self.addEventListener('activate', e => {
   e.waitUntil(
     caches.keys()
@@ -23,29 +29,39 @@ self.addEventListener('activate', e => {
   );
 });
 
-// M5: Navigate requests → serve ./index.html by mode, not URL path
+// ──────────────────────────────────────────────────────────────────
+// FETCH — routing strategy per request type
+// ──────────────────────────────────────────────────────────────────
 self.addEventListener('fetch', e => {
   const url = new URL(e.request.url);
 
-  // Bypass list — skip caching for live API hosts
-  if (BYPASS.some(h => url.hostname.includes(h))) return;
+  // 1. Firebase CDN: always network-only — never intercept
+  if (BYPASS.some(host => url.hostname.endsWith(host))) {
+    return; // let the browser handle it directly
+  }
 
-  // Navigate requests always get the app shell
+  // 2. Navigation (page load): return the cached shell
   if (e.request.mode === 'navigate') {
     e.respondWith(
-      caches.match('./index.html').then(cached => cached || fetch(e.request))
+      caches.match('./index.html').then(r => r || fetch(e.request))
     );
     return;
   }
 
-  // Cache-first for everything else
+  // 3. Everything else: cache-first, network fallback, cache the result
   e.respondWith(
     caches.match(e.request).then(cached => {
       if (cached) return cached;
-      return fetch(e.request).then(res => {
-        const clone = res.clone();
-        caches.open(CACHE).then(c => c.put(e.request, clone));
-        return res;
+      return fetch(e.request).then(response => {
+        // Only cache valid, same-origin responses
+        if (response && response.status === 200 && response.type !== 'opaque') {
+          const clone = response.clone();
+          caches.open(CACHE).then(cache => cache.put(e.request, clone));
+        }
+        return response;
+      }).catch(() => {
+        // Offline and not cached — nothing we can do
+        return new Response('', { status: 503, statusText: 'Offline' });
       });
     })
   );
