@@ -183,9 +183,82 @@ body{
   80% {opacity:1;transform:translate(-50%,0);}
   100%{opacity:0;transform:translate(-50%,-6px);}
 }
+
+/* ── Onboarding ── */
+#onboard{
+  position:fixed;inset:0;z-index:500;
+  display:none;flex-direction:column;overflow:hidden;
+  transition:opacity .4s ease;
+}
+#onboard::after{
+  content:'';position:absolute;inset:0;pointer-events:none;z-index:2;
+  background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,.15) 3px,rgba(0,0,0,.15) 4px);
+}
+.ob-slide{
+  position:absolute;inset:0; /* M12 */
+  display:flex;flex-direction:column;align-items:center;
+  padding:24px 20px 16px;
+  opacity:0;pointer-events:none;transition:opacity .35s ease;z-index:1;
+}
+.ob-slide.active{opacity:1;pointer-events:all;}
+.ob-top{display:flex;justify-content:center;flex-shrink:0;}
+.ob-badge{
+  font-size:10px;font-weight:700;letter-spacing:3px;color:#22d3ee;
+  text-transform:uppercase;background:rgba(34,211,238,.08);
+  border:1px solid rgba(34,211,238,.3);padding:4px 14px;border-radius:3px;
+}
+.ob-art{
+  flex:1;display:flex;align-items:center;justify-content:center;
+  width:100%;min-height:0;padding:12px 0;
+}
+.ob-art svg{
+  image-rendering:pixelated;image-rendering:crisp-edges;
+  max-height:220px;max-width:min(280px,90vw);
+  width:auto;height:auto;display:block;
+}
+@keyframes artPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
+.ob-art-anim svg{animation:artPulse 2.2s ease-in-out infinite;}
+.ob-text{flex-shrink:0;text-align:center;padding:0 4px;}
+.ob-big-title{
+  font-size:30px;font-weight:800;letter-spacing:3px;color:#f59e0b;
+  text-transform:uppercase;margin-bottom:6px;
+  text-shadow:0 0 24px rgba(245,158,11,.4);
+}
+.ob-sub{font-size:11px;letter-spacing:4px;color:#9c7a4a;text-transform:uppercase;}
+.ob-title{
+  font-size:12px;font-weight:700;letter-spacing:2.5px;
+  color:#f59e0b;text-transform:uppercase;margin-bottom:10px;
+}
+.ob-story{font-size:14px;color:#fef3c7;line-height:1.7;max-width:300px;margin:0 auto;}
+.ob-nav{
+  display:flex;justify-content:space-between;align-items:center;
+  width:100%;margin-top:18px;flex-shrink:0;
+}
+.ob-skip{
+  background:transparent;border:1px solid #2a1a0a;color:#5a3a1a;
+  font-size:12px;padding:9px 16px;border-radius:6px;cursor:pointer;font-family:inherit;
+}
+.ob-next{
+  background:#f59e0b;border:none;color:#1c0e04;font-size:13px;font-weight:700;
+  padding:10px 20px;border-radius:6px;cursor:pointer;font-family:inherit;letter-spacing:.5px;
+}
+.ob-next:active{opacity:.8;}
+.ob-dots{display:flex;gap:7px;align-items:center;}
+.ob-dot{
+  width:8px;height:8px;border-radius:50%;background:#1a0a04;
+  border:1px solid #3a1a08;transition:all .2s;
+}
+.ob-dot.active{background:#f59e0b;border-color:#f59e0b;}
+.replay-btn{
+  background:transparent;border:1px solid var(--border);color:var(--muted);
+  font-size:12px;padding:8px;border-radius:6px;cursor:pointer;
+  font-family:inherit;width:100%;margin-top:6px;
+}
 </style>
 </head>
 <body>
+
+<div id="onboard"></div>
 
 <div id="offline-banner">⚡ You're offline — game still works, progress is saving locally</div>
 
@@ -231,6 +304,164 @@ body{
 // ── SW registration — M3: FIRST LINE before any async ─────────────────────
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('./sw.js').catch(() => {});
+}
+
+// ── Onboarding ────────────────────────────────────────────────────────────────
+const OB_KEY='kok-intro-v1';
+
+// Pixel art palette
+const OB_PAL={
+  A:'#f59e0b',D:'#92400e',W:'#fef3c7',K:'#1c0e04',
+  S:'#78716c',R:'#dc2626',Y:'#fbbf24',C:'#22d3ee',
+  M:'#292524',L:'#e2d9c8',B:'#1d4ed8',P:'#7c3aed',
+};
+
+// Render a string-array pixel sprite to SVG
+function renderPx(rows,px){
+  const H=rows.length,W=Math.max(...rows.map(r=>r.length));
+  let o=`<svg viewBox="0 0 ${W*px} ${H*px}" xmlns="http://www.w3.org/2000/svg">`;
+  for(let y=0;y<H;y++)for(let x=0;x<rows[y].length;x++){
+    const c=rows[y][x];if(c==='.'||!OB_PAL[c])continue;
+    o+=`<rect x="${x*px}" y="${y*px}" width="${px}" height="${px}" fill="${OB_PAL[c]}"/>`;
+  }
+  return o+'</svg>';
+}
+
+// ── Pixel sprites (12–13 wide × 12–13 tall, px=10 → ~120×130 px) ────────────
+
+// Slide 1: Kopi cup with steam (13×12)
+const CUP_ART=[
+  '.....CC.CC...',
+  '......C.C....',
+  '.............',
+  '....AAAAAAA..',
+  '...AAAAAAAAA.',
+  '...A.MMMMMA.A',
+  '...A.MMMMMA..',
+  '...A.MMMMMA.A',
+  '...A.MMMMMA..',
+  '...AAAAAAAAA.',
+  '....AAAAAAA..',
+  '..AAAAAAAAAAA',
+];
+
+// Slide 2: Uncle Ah Kow — apron, smile, chunky sprite (12×13)
+const UNCLE_ART=[
+  '....DDDD....',
+  '...DDDDDD...',
+  '...DDDDDD...',
+  '...DMDDMD...',
+  '...DDDDDD...',
+  '....MDDM....',
+  '..DDDDDDDD..',
+  '..WWWWWWWW..',
+  '.WWWWWWWWWW.',
+  '.WWWWWWWWWW.',
+  '..WWWWWWWW..',
+  '..SS....SS..',
+  '..KK....KK..',
+];
+
+// Slide 3: The Ang Moh Inspector — beret, blue suit, red tie (12×13)
+const INSP_ART=[
+  '..PPPPPPPP..',
+  '...PPPPPP...',
+  '...LLLLLL...',
+  '...LMLLML...',
+  '...LLLLLL...',
+  '....MLLM....',
+  '..BBBBBBBB..',
+  '..B.LLLL.B..',
+  '..B.RRRR.B..',
+  '..BBBBBBBB..',
+  '..SS....SS..',
+  '..SS....SS..',
+  '..KK....KK..',
+];
+
+// Slide 4: Gold trophy with cyan sparkles (12×12)
+const TROPHY_ART=[
+  '...CC..CC...',
+  '..C......C..',
+  '...CC..CC...',
+  '............',
+  '....AAAA....',
+  '...AAAAAA...',
+  '..AAAAAAAA..',
+  '..A.YYYY.A..',
+  '..AAAAAAAA..',
+  '...AAAAAA...',
+  '....AAAA....',
+  '.AAAAAAAAAA.',
+];
+
+const SLIDES=[
+  {
+    bg:'#050512',badge:'✦ SEGA PRESENTS ✦',
+    art:CUP_ART,anim:true,
+    bigTitle:'KOPI O KING',sub:'A Singapore Hawker Epic',story:null,
+  },
+  {
+    bg:'#0a0400',badge:'● YEAR 1965 ●',
+    art:UNCLE_ART,
+    title:'UNCLE AH KOW',
+    story:'Last grandson of a Hokkien kopi master.\nHis kopi so shiok, even Pulau Ubin fishermen took a bumboat just to drink one cup.',
+  },
+  {
+    bg:'#06000e',badge:'⚠ DANGER INCOMING ⚠',
+    art:INSP_ART,
+    title:'THE ANG MOH INSPECTOR',
+    story:'One boh liao Tuesday, a mysterious ang moh arrived with a small red book.\n"I am from Michelin," he said.\nWalao eh. You sell tyre meh?',
+  },
+  {
+    bg:'#020a04',badge:'▶ PLAYER 1 READY ◀',
+    art:TROPHY_ART,
+    title:'YOUR TURN, CHAMP',
+    story:'Uncle Ah Kow retire liao. The stall is yours.\nTap. Brew. Hire aunties. Conquer Singapore.\nBecome the KOPI O KING.',
+    last:true,
+  },
+];
+
+function buildOnboarding(){
+  const el=document.getElementById('onboard');
+  el.innerHTML=SLIDES.map((s,i)=>{
+    const svg=renderPx(s.art,10);
+    const artCls='ob-art'+(s.anim?' ob-art-anim':'');
+    const textHtml=s.bigTitle
+      ?`<div class="ob-big-title">${s.bigTitle}</div><div class="ob-sub">${s.sub}</div>`
+      :`<div class="ob-title">${s.title}</div><div class="ob-story">${s.story.replace(/\n/g,'<br>')}</div>`;
+    const dots=SLIDES.map((_,j)=>`<div class="ob-dot${j===i?' active':''}"></div>`).join('');
+    const nextFn=s.last?'closeOnboard()':`obNext(${i})`;
+    const nextTxt=s.last?'START PLAYING ▶':'NEXT ▶';
+    return `<div class="ob-slide${i===0?' active':''}" id="ob-${i}" style="background:${s.bg};">
+      <div class="ob-top"><span class="ob-badge">${s.badge}</span></div>
+      <div class="${artCls}">${svg}</div>
+      <div class="ob-text">${textHtml}</div>
+      <div class="ob-nav">
+        <button class="ob-skip" onclick="closeOnboard()">Skip</button>
+        <div class="ob-dots">${dots}</div>
+        <button class="ob-next" onclick="${nextFn}">${nextTxt}</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function obNext(from){
+  document.getElementById('ob-'+from).classList.remove('active');
+  document.getElementById('ob-'+(from+1)).classList.add('active');
+}
+
+function closeOnboard(){
+  localStorage.setItem(OB_KEY,'done');
+  const el=document.getElementById('onboard');
+  el.style.opacity='0';
+  setTimeout(()=>{el.style.display='none';el.style.opacity='';},420);
+}
+
+function openOnboard(){
+  buildOnboarding();
+  const el=document.getElementById('onboard');
+  el.style.display='flex';
 }
 
 // ── Game data ───────────────────────────────────────────────────────────────
@@ -550,6 +781,7 @@ function renderStats(){
     <div class="stats-tip">
       Tip: the Michelin Star upgrade (⬆️ tab) multiplies everything ×5. Save up and go for it! 🌟
     </div>
+    <button class="replay-btn" onclick="openOnboard()">🎬 Replay intro</button>
     <a href="https://ko-fi.com/leanlifestyle19" target="_blank" rel="noopener"
        style="display:flex;align-items:center;justify-content:center;gap:8px;
               margin-top:8px;padding:11px 16px;border-radius:8px;
@@ -615,6 +847,12 @@ async function init(){
   renderUI();
   renderList();
   setInterval(tick,50);
+
+  // Show onboarding on first visit (M12: show once, localStorage flag)
+  if(!localStorage.getItem(OB_KEY)){
+    buildOnboarding();
+    document.getElementById('onboard').style.display='flex';
+  }
 }
 
 init();
