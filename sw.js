@@ -1,6 +1,6 @@
 // ── Kopi O King Service Worker ───────────────────────────────────────────────
 // M1: Bump this on EVERY index.html deploy — never skip
-const CACHE = 'kok-20260625v3';
+const CACHE = 'kok-20260625b';
 
 // M16: List every external API host here. Currently none — fully offline game.
 const BYPASS = [];
