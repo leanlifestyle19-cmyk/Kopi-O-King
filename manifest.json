@@ -1,0 +1,20 @@
+{
+  "name": "Kopi O King",
+  "short_name": "Kopi O King",
+  "description": "Singapore hawker idle clicker game — tap to brew, build your empire",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#1c0e04",
+  "theme_color": "#f59e0b",
+  "categories": ["games", "entertainment"],
+  "icons": [
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='18' fill='%23f59e0b'/%3E%3Ctext x='50' y='74' font-size='62' text-anchor='middle'%3E%E2%98%95%3C/text%3E%3C/svg%3E",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
