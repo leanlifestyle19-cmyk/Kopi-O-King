@@ -1,2176 +1,961 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <meta name="theme-color" content="#dff4fb">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>FamChat</title>
-  <link rel="manifest" href="./manifest.json">
-  <style>
-    /* ================================================================
-       DESIGN TOKENS
-    ================================================================ */
-    :root {
-      /* Ocean theme — default (light) */
-      --bg:              #dff4fb;
-      --surface:         #f0faff;
-      --surface-raised:  #ffffff;
-      --border:          #b3e0f5;
-      --bubble-other:    #e0f2fe;
-      --bubble-other-tx: #0c3d5a;
-      --input-bg:        #f0faff;
-      --input-border:    #7dd3fa;
-      --compose-bg:      #dff4fb;
-      --tx-primary:      #0c3d5a;
-      --tx-secondary:    #0369a1;
-      --tx-muted:        #0891b2;
-      --online:          #16a34a;
-      --unread-bg:       #ef4444;
-      --rx-bg:           rgba(0,0,0,0.06);
-      --rx-own-bg:       rgba(0,0,0,0.13);
-      --rx-border:       rgba(0,0,0,0.10);
-      --safe-b:          env(safe-area-inset-bottom, 0px);
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Kopi O King">
+<meta name="theme-color" content="#1c0e04">
+<link rel="manifest" href="./manifest.json">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='15' fill='%23f59e0b'/><text x='50' y='74' font-size='62' text-anchor='middle'>%E2%98%95</text></svg>">
+<title>Kopi O King</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;overflow:hidden;}
+body{
+  height:100vh;height:100dvh;
+  display:flex;flex-direction:column;
+  background:#1c0e04;color:#fef3c7;
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;
+  user-select:none;overflow:hidden;
+}
+:root{
+  --bg:#1c0e04;--surf:#2d1a08;--card:#3e2510;--card-owned:#3a2010;
+  --border:#4a2e0e;--border-owned:#6b3a12;
+  --amber:#f59e0b;--green:#22c55e;--muted:#9c7a4a;--text:#fef3c7;
+}
 
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+/* ── Offline banner ── */
+#offline-banner{
+  display:none;background:#7f1d1d;color:#fca5a5;
+  font-size:11px;text-align:center;padding:3px 8px;flex-shrink:0;
+}
 
-    html, body {
-      height: 100%; overflow: hidden;
-      background: var(--bg); color: var(--tx-primary);
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
-      font-size: 15px; line-height: 1.4;
-      -webkit-font-smoothing: antialiased;
-      touch-action: manipulation;
-    }
+/* ── Header ── */
+#header{
+  flex-shrink:0;background:var(--surf);
+  padding:10px 16px;display:flex;justify-content:space-between;align-items:center;
+  border-bottom:2px solid var(--amber);
+}
+#header .title{font-size:18px;font-weight:700;color:var(--amber);letter-spacing:-.3px;}
+#header .sub  {font-size:11px;color:var(--muted);margin-top:2px;}
+#money-display{font-size:28px;font-weight:800;color:var(--green);line-height:1;font-variant-numeric:tabular-nums;}
+#cps-display  {font-size:12px;color:var(--muted);margin-top:3px;text-align:right;}
 
-    ::-webkit-scrollbar { width: 4px; }
-    ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+/* ── Click zone ── */
+#click-zone{
+  flex-shrink:0;display:flex;flex-direction:column;align-items:center;
+  padding:14px 16px 10px;background:#150b02;
+  border-bottom:1px solid var(--border);gap:5px;
+}
+#cup-btn{
+  position:relative;width:140px;height:140px;border-radius:50%;
+  background:radial-gradient(circle at 40% 38%,#6b3200 0%,#3a1800 70%);
+  border:3px solid var(--amber);display:flex;align-items:center;justify-content:center;
+  cursor:pointer;transition:transform .12s ease;overflow:visible;
+  -webkit-user-select:none;
+}
+#cup-btn:active{transform:scale(.85);}
+#cup-emoji{font-size:66px;line-height:1;pointer-events:none;}
 
-    /* ================================================================
-       SCREEN SYSTEM
-    ================================================================ */
-    .screen {
-      position: fixed; inset: 0;
-      display: none; flex-direction: column;
-      background: var(--bg);
-      background-image: var(--bg-wave, none);
-      background-position: bottom center;
-      background-size: var(--bg-wave-size, 100% 38%);
-      background-repeat: no-repeat;
-    }
-    .screen.active { display: flex; }
-    .screen.centered { align-items: center; justify-content: center; overflow-y: auto; padding: 28px 24px; }
+/* Steam */
+.steam{
+  position:absolute;border-radius:50%;
+  background:rgba(255,230,180,.22);pointer-events:none;
+  animation:steamRise 2s ease-out infinite;
+}
+.s1{width:9px;height:9px;left:48px;bottom:105%;animation-delay:0s;}
+.s2{width:7px;height:7px;left:76px;bottom:105%;animation-delay:.7s;}
+.s3{width:6px;height:6px;left:36px;bottom:105%;animation-delay:1.4s;}
 
-    /* ================================================================
-       SHARED COMPONENTS
-    ================================================================ */
-    .btn-primary {
-      background: #3b82f6; color: #fff; border: none; border-radius: 12px;
-      padding: 14px 20px; font-size: 15px; font-weight: 600; font-family: inherit;
-      cursor: pointer; width: 100%; transition: opacity .18s, transform .1s;
-    }
-    .btn-primary:hover { opacity: .9; }
-    .btn-primary:active { transform: scale(.98); }
-    .btn-primary:disabled { opacity: .4; cursor: not-allowed; transform: none; }
+/* Float text */
+#floats{position:absolute;inset:0;pointer-events:none;overflow:visible;}
+.float-txt{
+  position:absolute;color:var(--amber);font-weight:800;font-size:14px;
+  white-space:nowrap;pointer-events:none;
+  animation:floatUp .9s ease-out forwards;
+}
 
-    .text-input {
-      background: var(--input-bg); border: 1.5px solid var(--border); border-radius: 10px;
-      padding: 12px 14px; color: var(--tx-primary); font-size: 15px; font-family: inherit;
-      outline: none; width: 100%; transition: border-color .18s;
-    }
-    .text-input:focus { border-color: #3b82f6; }
+.tap-hint{font-size:11px;font-weight:700;color:var(--amber);letter-spacing:1px;}
+#click-val{font-size:11px;color:var(--muted);}
 
-    .form-label {
-      display: block; font-size: 12px; font-weight: 600; letter-spacing: .4px;
-      color: var(--tx-secondary); text-transform: uppercase; margin-bottom: 8px;
-    }
+#quick-stats{display:flex;gap:8px;width:100%;}
+.stat-chip{
+  flex:1;background:var(--surf);border-radius:6px;
+  padding:5px 8px;font-size:11px;color:var(--muted);text-align:center;
+}
 
-    .icon-btn {
-      width: 38px; height: 38px; border-radius: 50%;
-      background: transparent; border: none; color: var(--tx-secondary); cursor: pointer;
-      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-      transition: background .14s, color .14s;
-    }
-    .icon-btn:hover { background: var(--surface-raised); color: var(--tx-primary); }
+/* ── Tab bar ── */
+#tab-bar{
+  flex-shrink:0;display:flex;border-bottom:1px solid var(--border);
+  background:var(--surf);
+}
+.tab-btn{
+  flex:1;padding:10px 0;background:transparent;border:none;
+  border-bottom:2px solid transparent;color:var(--muted);
+  cursor:pointer;font-size:12px;font-weight:600;
+  transition:all .15s;font-family:inherit;
+}
+.tab-btn.active{color:var(--amber);border-bottom-color:var(--amber);}
 
-    /* AVATAR CIRCLES — color set inline via JS hexToRgba() */
-    .av {
-      border-radius: 50%; display: flex; align-items: center; justify-content: center;
-      flex-shrink: 0; line-height: 1;
-    }
-    .av.grp {
-      background: linear-gradient(135deg, rgba(59,130,246,.18), rgba(168,85,247,.18));
-      border: 1.5px solid rgba(59,130,246,.38);
-    }
-    .av.bub { align-self: flex-end; margin-bottom: 2px; }
+/* ── List ── */
+#list{
+  flex:1;overflow-y:auto;min-height:0;/* M8 */
+  padding:8px;display:flex;flex-direction:column;gap:5px;
+}
+#list::-webkit-scrollbar{width:4px;}
+#list::-webkit-scrollbar-track{background:var(--bg);}
+#list::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
 
-    /* EMOJI / COLOR PICKERS */
-    .emoji-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 7px; }
-    .emoji-cell {
-      aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
-      font-size: 22px; border-radius: 10px; background: var(--surface);
-      border: 2px solid transparent; cursor: pointer;
-      transition: background .13s, border-color .13s, transform .1s;
-      user-select: none;
-    }
-    .emoji-cell:hover { background: var(--surface-raised); }
-    .emoji-cell:active { transform: scale(.88); }
-    .emoji-cell.sel { border-color: #3b82f6; background: rgba(59,130,246,.14); }
+/* ── Item cards ── */
+.item-card{
+  display:flex;align-items:center;gap:10px;
+  background:var(--card);border-radius:8px;padding:8px 10px;
+  cursor:pointer;border:1px solid var(--border);transition:background .1s,opacity .2s;
+}
+.item-card.owned{background:var(--card-owned);border-color:var(--border-owned);}
+.item-card.dim  {opacity:.35;cursor:default;pointer-events:none;}
+.item-card:not(.dim):active{background:#4a2c12;}
+.card-emoji{font-size:24px;width:32px;text-align:center;flex-shrink:0;}
+.card-mid  {flex:1;min-width:0;}
+.card-name {font-size:13px;font-weight:600;color:var(--text);}
+.card-desc {font-size:11px;color:var(--muted);margin-top:1px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
+.card-right{flex-shrink:0;text-align:right;}
+.card-cost {font-size:13px;font-weight:700;}
+.card-count{font-size:11px;color:var(--amber);margin-top:1px;}
+.can {color:var(--green);}
+.cant{color:var(--muted);}
 
-    .color-row { display: flex; gap: 12px; flex-wrap: wrap; }
-    .color-dot {
-      width: 36px; height: 36px; border-radius: 50%; cursor: pointer;
-      border: 2.5px solid transparent; outline: 3px solid transparent; outline-offset: 2px;
-      transition: transform .14s, outline-color .14s;
-      flex-shrink: 0;
-    }
-    .color-dot:hover { transform: scale(1.1); }
-    .color-dot.sel { transform: scale(1.12); outline-color: rgba(255,255,255,.55); }
+/* ── Stats tab ── */
+.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:2px 0;}
+.stat-box{background:var(--card);border-radius:8px;padding:10px 12px;border:1px solid var(--border);}
+.stat-box .sl{font-size:11px;color:var(--muted);}
+.stat-box .sv{font-size:20px;font-weight:700;color:var(--amber);margin-top:3px;}
+.save-row{
+  display:flex;align-items:center;justify-content:space-between;
+  background:var(--surf);border-radius:8px;padding:10px 14px;
+  border:1px solid var(--border);margin-top:6px;
+}
+.save-lbl{font-size:12px;color:var(--muted);}
+#save-time{font-size:12px;color:var(--amber);margin-top:2px;}
+.reset-btn{
+  background:#5a1a10;color:#fca5a5;border:1px solid #7f2a1e;
+  border-radius:6px;padding:7px 14px;font-size:12px;font-weight:600;
+  cursor:pointer;font-family:inherit;
+}
+.reset-btn:active{opacity:.75;}
+.stats-tip{font-size:11px;color:#5a4030;text-align:center;margin-top:8px;padding:0 4px;line-height:1.5;}
 
-    /* ================================================================
-       SCREEN 1 — FIREBASE SETUP
-    ================================================================ */
-    .setup-box { width: 100%; max-width: 420px; display: flex; flex-direction: column; gap: 18px; }
+/* ── Milestone toast ── */
+#ms-toast{
+  display:none;position:fixed;bottom:20px;left:50%;
+  background:var(--surf);border:2px solid var(--amber);border-radius:12px;
+  padding:10px 18px;align-items:center;gap:8px;
+  font-size:13px;font-weight:600;color:var(--text);
+  white-space:nowrap;z-index:200;max-width:92%;pointer-events:none;
+}
+#ms-toast.show{display:flex;animation:msToast 3.5s ease forwards;}
 
-    .app-logo { text-align: center; padding-bottom: 4px; }
-    .app-icon-shell {
-      width: 80px; height: 80px; border-radius: 22px; margin: 0 auto 14px;
-      background: linear-gradient(135deg, #3b82f6 0%, #14b8a6 100%);
-      display: flex; align-items: center; justify-content: center; font-size: 38px;
-    }
-    .app-name { font-size: 30px; font-weight: 700; letter-spacing: -.5px; }
-    .setup-sub { color: var(--tx-secondary); font-size: 14px; margin-top: 5px; }
+/* ── Offline earnings toast ── */
+#oe-toast{
+  display:none;position:fixed;bottom:20px;left:50%;
+  background:#1a3a1a;border:2px solid var(--green);border-radius:12px;
+  padding:10px 18px;align-items:center;gap:8px;
+  font-size:13px;font-weight:600;color:#bbf7d0;
+  white-space:nowrap;z-index:200;max-width:92%;pointer-events:none;
+}
+#oe-toast.show{display:flex;animation:msToast 4s ease forwards;}
 
-    .setup-ta {
-      width: 100%; min-height: 148px;
-      background: var(--surface); border: 1.5px solid var(--border); border-radius: 12px;
-      padding: 13px; color: var(--tx-primary);
-      font-family: 'Courier New', Courier, monospace; font-size: 12px;
-      resize: vertical; outline: none; transition: border-color .18s; line-height: 1.6;
-    }
-    .setup-ta:focus { border-color: #3b82f6; }
-    .setup-ta::placeholder { color: var(--tx-muted); }
+/* ── Animations ── */
+@keyframes floatUp{
+  0%  {opacity:1;transform:translateY(0);}
+  100%{opacity:0;transform:translateY(-54px);}
+}
+@keyframes steamRise{
+  0%  {opacity:.45;transform:translateY(0)scaleX(1);}
+  100%{opacity:0;  transform:translateY(-38px)scaleX(2);}
+}
+@keyframes msToast{
+  0%  {opacity:0;transform:translate(-50%,8px);}
+  12% {opacity:1;transform:translate(-50%,0);}
+  80% {opacity:1;transform:translate(-50%,0);}
+  100%{opacity:0;transform:translate(-50%,-6px);}
+}
 
-    .err-msg { color: #f87171; font-size: 13px; min-height: 16px; text-align: center; }
-    .readme-link {
-      color: #3b82f6; font-size: 13px; text-align: center; text-decoration: none; cursor: pointer;
-    }
-    .readme-link:hover { text-decoration: underline; }
+/* ── Onboarding ── */
+#onboard{
+  position:fixed;inset:0;z-index:500;
+  display:none;flex-direction:column;overflow:hidden;
+  transition:opacity .4s ease;
+}
+#onboard::after{
+  content:'';position:absolute;inset:0;pointer-events:none;z-index:2;
+  background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,.15) 3px,rgba(0,0,0,.15) 4px);
+}
+.ob-slide{
+  position:absolute;inset:0; /* M12 */
+  display:flex;flex-direction:column;align-items:center;
+  padding:24px 20px 16px;
+  opacity:0;pointer-events:none;transition:opacity .35s ease;z-index:1;
+}
+.ob-slide.active{opacity:1;pointer-events:all;}
+.ob-top{display:flex;justify-content:center;flex-shrink:0;}
+.ob-badge{
+  font-size:10px;font-weight:700;letter-spacing:3px;color:#22d3ee;
+  text-transform:uppercase;background:rgba(34,211,238,.08);
+  border:1px solid rgba(34,211,238,.3);padding:4px 14px;border-radius:3px;
+}
+.ob-art{
+  flex:1;display:flex;align-items:center;justify-content:center;
+  width:100%;min-height:0;padding:12px 0;
+}
+.ob-art svg{
+  image-rendering:pixelated;image-rendering:crisp-edges;
+  max-height:220px;max-width:min(280px,90vw);
+  width:auto;height:auto;display:block;
+}
+@keyframes artPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
+.ob-art-anim svg{animation:artPulse 2.2s ease-in-out infinite;}
+.ob-text{flex-shrink:0;text-align:center;padding:0 4px;}
+.ob-big-title{
+  font-size:30px;font-weight:800;letter-spacing:3px;color:#f59e0b;
+  text-transform:uppercase;margin-bottom:6px;
+  text-shadow:0 0 24px rgba(245,158,11,.4);
+}
+.ob-sub{font-size:11px;letter-spacing:4px;color:#9c7a4a;text-transform:uppercase;}
+.ob-title{
+  font-size:12px;font-weight:700;letter-spacing:2.5px;
+  color:#f59e0b;text-transform:uppercase;margin-bottom:10px;
+}
+.ob-story{font-size:14px;color:#fef3c7;line-height:1.7;max-width:300px;margin:0 auto;}
+.ob-nav{
+  display:flex;justify-content:space-between;align-items:center;
+  width:100%;margin-top:18px;flex-shrink:0;
+}
+.ob-skip{
+  background:transparent;border:1px solid #2a1a0a;color:#5a3a1a;
+  font-size:12px;padding:9px 16px;border-radius:6px;cursor:pointer;font-family:inherit;
+}
+.ob-next{
+  background:#f59e0b;border:none;color:#1c0e04;font-size:13px;font-weight:700;
+  padding:10px 20px;border-radius:6px;cursor:pointer;font-family:inherit;letter-spacing:.5px;
+}
+.ob-next:active{opacity:.8;}
+.ob-dots{display:flex;gap:7px;align-items:center;}
+.ob-dot{
+  width:8px;height:8px;border-radius:50%;background:#1a0a04;
+  border:1px solid #3a1a08;transition:all .2s;
+}
+.ob-dot.active{background:#f59e0b;border-color:#f59e0b;}
+.replay-btn{
+  background:transparent;border:1px solid var(--border);color:var(--muted);
+  font-size:12px;padding:8px;border-radius:6px;cursor:pointer;
+  font-family:inherit;width:100%;margin-top:6px;
+}
 
-    /* ================================================================
-       SCREEN 2 — PROFILE SETUP
-    ================================================================ */
-    .profile-box { width: 100%; max-width: 380px; display: flex; flex-direction: column; gap: 20px; }
-    .profile-heading { font-size: 26px; font-weight: 700; text-align: center; letter-spacing: -.3px; }
+/* ── Rush Hour ── */
+#cup-btn.rush{
+  border-color:#ef4444;
+  box-shadow:0 0 28px rgba(239,68,68,.55),0 0 60px rgba(239,68,68,.18);
+}
+@keyframes rushPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
+#cup-btn.rush:not(:active){animation:rushPulse .55s ease-in-out infinite;}
+#tap-hint.rush{color:#ef4444;}
+#click-val.rush{color:#ef4444;}
 
-    /* ================================================================
-       SCREEN 3 — HOME
-    ================================================================ */
-    .app-hdr {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 15px 18px 13px;
-      background: var(--surface); border-bottom: 1px solid var(--border); flex-shrink: 0;
-    }
-    .app-hdr-title { font-size: 20px; font-weight: 700; letter-spacing: -.3px; }
-
-    /* ── Quote card ──────────────────────────────────────────────── */
-    .quote-card {
-      flex-shrink: 0; display: flex; align-items: center; gap: 12px;
-      padding: 11px 16px 11px 14px;
-      background: linear-gradient(110deg, var(--surface) 0%, var(--surface-raised) 100%);
-      border-bottom: 1px solid var(--border);
-      border-left: 3px solid var(--tx-muted);
-      transition: opacity .35s;
-    }
-    .quote-card.fading { opacity: 0; }
-    .quote-card-emoji { font-size: 26px; flex-shrink: 0; line-height: 1; }
-    .quote-card-body { flex: 1; min-width: 0; }
-    .quote-card-text {
-      font-size: 12.5px; font-style: italic; color: var(--tx-secondary); line-height: 1.45;
-      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
-    }
-    .quote-card-attr { font-size: 11px; color: var(--tx-muted); margin-top: 2px; }
-
-    /* ── Ping FAB ────────────────────────────────────────────────── */
-    .ping-fab {
-      position: absolute; bottom: calc(22px + var(--safe-b)); right: 18px;
-      width: 58px; height: 58px; border-radius: 50%;
-      background: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%);
-      border: none; font-size: 26px; cursor: pointer;
-      display: flex; align-items: center; justify-content: center;
-      box-shadow: 0 4px 22px rgba(239,68,68,.45);
-      transition: transform .12s, box-shadow .12s;
-      animation: ping-pulse 3s ease-in-out infinite;
-      z-index: 20;
-    }
-    .ping-fab:active { transform: scale(.88); box-shadow: 0 2px 10px rgba(239,68,68,.3); animation: none; }
-    @keyframes ping-pulse {
-      0%,100% { box-shadow: 0 4px 22px rgba(239,68,68,.45); }
-      50%      { box-shadow: 0 4px 30px rgba(239,68,68,.75), 0 0 0 8px rgba(239,68,68,.1); }
-    }
-
-    /* ── Theme swatches (settings) ───────────────────────────────── */
-    .theme-row { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 10px; }
-    .theme-sw {
-      display: flex; flex-direction: column; align-items: center; gap: 5px;
-      cursor: pointer; opacity: .55; transition: opacity .15s, transform .12s;
-    }
-    .theme-sw.active { opacity: 1; }
-    .theme-sw:active { transform: scale(.9); }
-    .theme-sw-dot {
-      width: 42px; height: 42px; border-radius: 50%;
-      border: 2.5px solid transparent; position: relative; overflow: hidden;
-    }
-    .theme-sw.active .theme-sw-dot { border-color: var(--tx-primary); }
-    .theme-sw-label { font-size: 11px; color: var(--tx-secondary); }
-
-    /* ── Background Studio ───────────────────────────────────────── */
-    #s-studio { background: #111; }
-    .studio-hdr {
-      display: flex; align-items: center; gap: 10px;
-      padding: 10px 14px 8px; background: rgba(0,0,0,.75); flex-shrink: 0; z-index: 5;
-    }
-    .studio-name-in {
-      flex: 1; background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.2);
-      color: #fff; border-radius: 8px; padding: 6px 10px; font-size: 14px; outline: none;
-    }
-    .studio-save-btn {
-      background: #3b82f6; color: #fff; border: none; border-radius: 8px;
-      padding: 7px 16px; font-size: 14px; font-weight: 600; cursor: pointer; flex-shrink: 0;
-    }
-    #draw-canvas { flex: 1; display: block; touch-action: none; cursor: crosshair; width: 100%; }
-    .studio-bar {
-      background: rgba(0,0,0,.82); padding: 8px 10px 10px; flex-shrink: 0;
-      display: flex; flex-direction: column; gap: 7px;
-    }
-    .studio-color-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-    .studio-swatch-main {
-      width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0;
-      cursor: pointer; border: 2px solid rgba(255,255,255,.5);
-    }
-    .studio-hex {
-      width: 88px; background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.2);
-      color: #fff; border-radius: 6px; padding: 5px 8px; font-size: 13px;
-      font-family: monospace; outline: none;
-    }
-    .ps { width: 22px; height: 22px; border-radius: 50%; cursor: pointer; flex-shrink: 0;
-         border: 1.5px solid rgba(255,255,255,.25); transition: transform .1s; }
-    .ps:active { transform: scale(.85); }
-    .studio-tools { display: flex; gap: 5px; align-items: center; flex-wrap: wrap; }
-    .tb {
-      width: 36px; height: 36px; border-radius: 8px; border: 1.5px solid rgba(255,255,255,.15);
-      background: rgba(255,255,255,.08); color: #fff; font-size: 15px; cursor: pointer;
-      display: flex; align-items: center; justify-content: center; transition: background .1s;
-      flex-shrink: 0;
-    }
-    .tb.on { background: #3b82f6; border-color: #3b82f6; }
-    .tb:active { transform: scale(.88); }
-    .sdiv { width: 1px; height: 28px; background: rgba(255,255,255,.15); margin: 0 2px; flex-shrink: 0; }
-    .sz { width: 30px; height: 30px; border-radius: 6px; background: rgba(255,255,255,.08);
-         border: 1px solid rgba(255,255,255,.15); color: #fff; cursor: pointer;
-         display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-    .sz.on { background: rgba(255,255,255,.28); }
-    .poly-tip { font-size: 11px; color: rgba(255,255,255,.5); text-align: center; }
-    /* Saved bg gallery in Settings */
-    .bg-gallery { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
-    .bg-thumb-row {
-      display: flex; align-items: center; gap: 10px;
-      background: var(--surface-raised); border-radius: 10px; padding: 6px 10px;
-    }
-    .bg-thumb { width: 54px; height: 36px; object-fit: cover; border-radius: 5px; flex-shrink: 0; }
-    .bg-thumb-name { flex: 1; font-size: 13px; color: var(--tx-primary); min-width: 0;
-      overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .btn-apply { font-size: 12px; padding: 4px 10px; border-radius: 6px; background: #3b82f6;
-      color: #fff; border: none; cursor: pointer; flex-shrink: 0; }
-    .btn-del { font-size: 12px; padding: 4px 8px; border-radius: 6px; background: transparent;
-      color: var(--tx-muted); border: 1px solid var(--border); cursor: pointer; flex-shrink: 0; }
-
-    .home-list { flex: 1; overflow-y: auto; padding-bottom: 80px; }
-    .chat-row {
-      display: flex; align-items: center; gap: 14px; padding: 13px 18px;
-      cursor: pointer; border-bottom: 1px solid rgba(38,51,72,.5);
-      transition: background .12s;
-    }
-    .chat-row:hover { background: var(--surface); }
-    .chat-row:active { background: var(--surface-raised); }
-    .row-content { flex: 1; min-width: 0; }
-    .row-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-    .row-name { font-weight: 600; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .row-meta { font-size: 12px; color: var(--tx-muted); flex-shrink: 0; }
-    .row-bot { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 3px; }
-    .row-prev { font-size: 13px; color: var(--tx-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .prev-name { color: var(--tx-muted); }
-    .badge {
-      background: var(--unread-bg); color: #fff; font-size: 11px; font-weight: 700;
-      min-width: 20px; height: 20px; border-radius: 10px; padding: 0 6px;
-      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-    }
-
-    /* ================================================================
-       SCREEN 4 — CHAT
-    ================================================================ */
-    .chat-hdr {
-      display: flex; align-items: center; gap: 10px; padding: 11px 13px;
-      background: var(--surface); border-bottom: 1px solid var(--border); flex-shrink: 0;
-    }
-    .chat-hdr-info { flex: 1; display: flex; align-items: center; gap: 10px; min-width: 0; }
-    .chat-hdr-name { font-weight: 600; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .chat-hdr-sub { font-size: 12px; color: var(--tx-secondary); display: flex; align-items: center; gap: 5px; margin-top: 1px; }
-    .online-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--online); flex-shrink: 0; }
-
-    .chat-body { flex: 1; position: relative; overflow: hidden; display: flex; flex-direction: column; }
-
-    .messages {
-      flex: 1; overflow-y: auto; padding: 10px 13px 6px;
-      display: flex; flex-direction: column; gap: 2px;
-    }
-
-    /* Date dividers */
-    .date-div { display: flex; align-items: center; gap: 10px; margin: 10px 0 6px; }
-    .date-div::before, .date-div::after { content: ''; flex: 1; height: 1px; background: var(--border); }
-    .date-div span { font-size: 11.5px; color: var(--tx-muted); white-space: nowrap; padding: 0 2px; }
-
-    /* Message rows */
-    .msg-row { display: flex; align-items: flex-end; gap: 6px; }
-    .msg-row.own { flex-direction: row-reverse; }
-    .msg-grp { display: flex; flex-direction: column; max-width: 74%; }
-    .msg-grp.own { align-items: flex-end; }
-    .msg-grp.other { align-items: flex-start; }
-
-    .sndr-name { font-size: 11.5px; color: var(--tx-secondary); margin-bottom: 3px; padding-left: 2px; }
-    .msg-ts { font-size: 11px; color: var(--tx-muted); margin-top: 2px; margin-bottom: 4px; }
-
-    /* Bubbles — "tail-less tail" via corner radius difference */
-    .bub {
-      padding: 9px 13px; border-radius: 18px;
-      font-size: 14px; line-height: 1.48; word-break: break-word;
-      cursor: default; user-select: text; -webkit-user-select: text;
-      transition: filter .1s;
-    }
-    .bub:active { filter: brightness(.92); }
-    .bub.own { color: #fff; }
-    .bub.own.last  { border-bottom-right-radius: 4px; }
-    .bub.other { background: var(--bubble-other); color: var(--bubble-other-tx); }
-    .bub.other.last { border-bottom-left-radius: 4px; }
-
-    .av-spacer { width: 30px; flex-shrink: 0; }
-
-    /* Reactions */
-    .rxns { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 5px; }
-    .rxn-chip {
-      display: inline-flex; align-items: center; gap: 3px;
-      padding: 3px 8px; border-radius: 12px;
-      background: var(--rx-bg); border: 1px solid var(--rx-border);
-      font-size: 13px; cursor: pointer; transition: background .12s;
-    }
-    .rxn-chip.mine { background: var(--rx-own-bg); border-color: rgba(255,255,255,.22); }
-    .rxn-chip:hover { background: rgba(255,255,255,.13); }
-
-    /* Typing indicator */
-    .typing-bar {
-      display: none; align-items: center; gap: 6px;
-      padding: 4px 14px 3px; font-size: 13px; color: var(--tx-secondary);
-    }
-    .typing-dots { display: inline-flex; gap: 2px; align-items: center; }
-    .typing-dots span { animation: tdot 1.4s infinite; font-size: 17px; line-height: 1; }
-    .typing-dots span:nth-child(2) { animation-delay: .2s; }
-    .typing-dots span:nth-child(3) { animation-delay: .4s; }
-    @keyframes tdot {
-      0%, 60%, 100% { opacity: .28; transform: translateY(0); }
-      30% { opacity: 1; transform: translateY(-2px); }
-    }
-
-    /* Compose bar — signature glow set inline from member color */
-    .compose-area {
-      border-top: 1px solid var(--border); background: var(--compose-bg);
-      padding: 8px 11px; padding-bottom: calc(8px + var(--safe-b)); flex-shrink: 0;
-    }
-    .compose-bar {
-      display: flex; align-items: flex-end; gap: 8px;
-      background: var(--input-bg); border: 1.5px solid var(--input-border);
-      border-radius: 26px; padding: 8px 8px 8px 15px;
-      transition: border-color .18s;
-    }
-    .compose-ta {
-      flex: 1; background: transparent; border: none; outline: none;
-      color: var(--tx-primary); font-size: 15px; font-family: inherit; resize: none;
-      min-height: 24px; max-height: 96px; line-height: 1.5; overflow-y: auto;
-    }
-    .compose-ta::placeholder { color: var(--tx-muted); }
-    .compose-ta:disabled { opacity: .45; }
-    .send-btn {
-      width: 36px; height: 36px; border-radius: 50%; background: #3b82f6;
-      border: none; cursor: pointer; color: #fff;
-      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-      transition: transform .1s, opacity .16s;
-    }
-    .send-btn:hover { opacity: .9; }
-    .send-btn:active { transform: scale(.88); }
-
-    /* ── Mic button ──────────────────────────────────────────────── */
-    .mic-btn {
-      width: 32px; height: 32px; border-radius: 50%; background: transparent;
-      border: none; cursor: pointer; color: var(--tx-muted); font-size: 18px;
-      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-      transition: color .15s, transform .1s;
-    }
-    .mic-btn:active { transform: scale(.88); color: var(--tx-secondary); }
-
-    /* ── Recording state ─────────────────────────────────────────── */
-    #compose-normal { display: flex; align-items: flex-end; gap: 6px; flex: 1; }
-    #compose-rec    { display: none; align-items: center; gap: 10px; flex: 1; }
-    .rec-dot {
-      width: 10px; height: 10px; border-radius: 50%; background: #ef4444; flex-shrink: 0;
-      animation: rec-blink 1s ease-in-out infinite;
-    }
-    @keyframes rec-blink { 0%,100%{opacity:1} 50%{opacity:.25} }
-    .rec-timer { font-size: 14px; font-variant-numeric: tabular-nums; color: var(--tx-primary); }
-    .rec-cancel {
-      width: 32px; height: 32px; border-radius: 50%; background: transparent;
-      border: 1.5px solid var(--border); color: var(--tx-secondary);
-      font-size: 15px; cursor: pointer; display: flex; align-items: center; justify-content: center;
-      flex-shrink: 0;
-    }
-    .rec-send {
-      height: 34px; border-radius: 17px; background: #22c55e; border: none;
-      color: #fff; font-size: 13px; font-weight: 600; padding: 0 14px;
-      cursor: pointer; flex-shrink: 0; transition: transform .1s;
-    }
-    .rec-send:active { transform: scale(.92); }
-
-    /* ── Voice message bubble ────────────────────────────────────── */
-    .voice-bub {
-      display: flex; align-items: center; gap: 10px;
-      min-width: 160px; max-width: 220px; padding: 2px 0;
-    }
-    .voice-play {
-      width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0;
-      border: none; cursor: pointer; font-size: 13px;
-      background: rgba(255,255,255,0.22); color: inherit;
-      display: flex; align-items: center; justify-content: center;
-      transition: transform .1s, background .15s;
-    }
-    .voice-play:active { transform: scale(.88); }
-    .bub.other .voice-play { background: rgba(0,0,0,0.10); }
-    .voice-wave {
-      flex: 1; display: flex; align-items: center; gap: 2px; height: 28px;
-    }
-    .vbar {
-      flex: 1; border-radius: 2px; background: currentColor; opacity: .55;
-      min-height: 3px;
-    }
-    .vbar.active { opacity: 1; animation: vbar-dance .6s ease-in-out infinite alternate; }
-    @keyframes vbar-dance { from{transform:scaleY(.6)} to{transform:scaleY(1)} }
-    .voice-dur { font-size: 11px; opacity: .75; white-space: nowrap; flex-shrink: 0; }
-
-    /* New message chip */
-    .new-chip {
-      display: none; position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%);
-      background: #3b82f6; color: #fff; padding: 7px 16px; border-radius: 20px;
-      font-size: 13px; font-weight: 600; cursor: pointer; z-index: 10;
-      box-shadow: 0 4px 18px rgba(0,0,0,.45); white-space: nowrap;
-    }
-
-    /* Empty state */
-    .empty-chat { text-align: center; color: var(--tx-muted); padding: 48px 16px; font-size: 14px; line-height: 1.7; }
-
-    /* ================================================================
-       SCREEN 5 — SETTINGS
-    ================================================================ */
-    .settings-hdr {
-      display: flex; align-items: center; gap: 12px; padding: 14px 16px;
-      background: var(--surface); border-bottom: 1px solid var(--border); flex-shrink: 0;
-    }
-    .settings-title { font-size: 17px; font-weight: 600; }
-
-    .settings-body {
-      flex: 1; overflow-y: auto; padding: 22px 18px;
-      display: flex; flex-direction: column; gap: 28px;
-    }
-    .sec-label {
-      font-size: 11.5px; font-weight: 700; letter-spacing: .7px;
-      color: var(--tx-secondary); text-transform: uppercase; margin-bottom: 12px;
-    }
-
-    .member-row { display: flex; align-items: center; gap: 12px; padding: 9px 0; border-bottom: 1px solid var(--border); }
-    .member-row:last-child { border-bottom: none; }
-    .member-name { font-weight: 500; color: var(--tx-primary); font-size: 14px; }
-    .member-last { font-size: 12px; color: var(--tx-muted); margin-top: 1px; }
-    .you-tag { color: var(--tx-muted); font-weight: 400; font-size: 13px; }
-
-    .btn-ghost {
-      background: var(--surface-raised); color: var(--tx-primary); border: 1px solid var(--border);
-      border-radius: 10px; padding: 12px 16px; font-size: 14px; font-weight: 500; font-family: inherit;
-      cursor: pointer; width: 100%; text-align: left; transition: background .12s;
-      display: block; margin-bottom: 10px;
-    }
-    .btn-ghost:hover { background: var(--border); }
-    .btn-ghost:last-child { margin-bottom: 0; }
-    .btn-danger {
-      background: rgba(239,68,68,.1); color: #f87171; border: 1px solid rgba(239,68,68,.2);
-      border-radius: 10px; padding: 12px 16px; font-size: 14px; font-weight: 500; font-family: inherit;
-      cursor: pointer; width: 100%; text-align: left; transition: background .12s;
-    }
-    .btn-danger:hover { background: rgba(239,68,68,.2); }
-    .ver-str { font-size: 12px; color: var(--tx-muted); text-align: center; }
-
-    /* ================================================================
-       OFFLINE BANNER
-    ================================================================ */
-    #offline-banner {
-      position: fixed; top: 0; left: 0; right: 0; z-index: 999;
-      background: #1a2438; border-bottom: 1px solid var(--border);
-      padding: 7px 16px; display: none; align-items: center;
-      justify-content: center; gap: 8px; font-size: 13px; color: var(--tx-secondary);
-    }
-    .pulse { width: 8px; height: 8px; border-radius: 50%; background: #f59e0b; animation: pls 2s infinite; }
-    @keyframes pls { 0%,100%{opacity:1} 50%{opacity:.3} }
-    #fc-toast {
-      position: fixed; bottom: calc(80px + env(safe-area-inset-bottom,0px)); left: 50%;
-      transform: translateX(-50%); background: #1e293b; border: 1px solid var(--border);
-      color: var(--tx-secondary); font-size: 13px; padding: 8px 18px;
-      border-radius: 20px; z-index: 2000; white-space: nowrap;
-      opacity: 0; transition: opacity .2s; pointer-events: none;
-    }
-    #fc-toast.show { opacity: 1; }
-
-    /* ================================================================
-       REACTION PICKER
-    ================================================================ */
-    .rxn-picker {
-      position: fixed; background: var(--surface-raised); border: 1px solid var(--border);
-      border-radius: 38px; padding: 7px 10px; display: flex; gap: 3px;
-      z-index: 1000; box-shadow: 0 10px 36px rgba(0,0,0,.6);
-    }
-    .rxn-btn {
-      font-size: 24px; background: transparent; border: none; cursor: pointer;
-      width: 44px; height: 44px; border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      transition: background .12s, transform .12s;
-    }
-    .rxn-btn:hover { background: var(--border); transform: scale(1.22); }
-
-    @media (prefers-reduced-motion: reduce) {
-      *, *::before, *::after { animation-duration: .001ms !important; transition-duration: .001ms !important; }
-    }
-  </style>
+/* ── Help / Settings ── */
+.how-section{
+  background:var(--card);border-radius:8px;padding:12px;
+  border:1px solid var(--border);display:flex;flex-direction:column;gap:9px;
+}
+.how-head{
+  font-size:10px;font-weight:700;letter-spacing:2px;color:var(--amber);
+  text-transform:uppercase;padding-bottom:6px;border-bottom:1px solid var(--border);
+}
+.how-row{display:flex;gap:10px;align-items:flex-start;}
+.hw-ic{font-size:18px;flex-shrink:0;width:26px;text-align:center;margin-top:2px;}
+.hw-tx{font-size:13px;color:var(--text);line-height:1.5;}
+.hw-tx b{color:var(--amber);}
+.set-btn{
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  background:var(--surf);border:1px solid var(--border);color:var(--text);
+  font-size:13px;font-weight:600;padding:12px;border-radius:8px;
+  cursor:pointer;font-family:inherit;width:100%;
+}
+.set-btn:active{opacity:.75;}
+.set-btn.danger{background:#3a0a0a;border-color:#7f2a1e;color:#fca5a5;}
+</style>
 </head>
 <body>
 
-  <!-- Firebase SDK (compat v10.12.0) — load before app script -->
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<div id="onboard"></div>
 
-  <!-- ═══════════════════════════════════════════════════════
-       SCREEN 1 · Firebase Setup
-  ═══════════════════════════════════════════════════════ -->
-  <div id="s-firebase" class="screen centered">
-    <div class="setup-box">
-      <div class="app-logo">
-        <div class="app-icon-shell">💬</div>
-        <div class="app-name">FamChat</div>
-        <div class="setup-sub">Paste your Firebase config to get started</div>
-      </div>
-      <textarea id="fc-ta" class="setup-ta"
-        placeholder='{&#10;  "apiKey": "AIzaSy...",&#10;  "authDomain": "your-app.firebaseapp.com",&#10;  "databaseURL": "https://your-app-default-rtdb.firebaseio.com",&#10;  "projectId": "your-app",&#10;  "storageBucket": "your-app.appspot.com",&#10;  "messagingSenderId": "123456789012",&#10;  "appId": "1:123456789012:web:abc123def456"&#10;}'></textarea>
-      <button id="fc-btn" class="btn-primary">Connect &amp; Save</button>
-      <div id="fc-err" class="err-msg"></div>
-      <a class="readme-link" href="./README.md" target="_blank">How to get your Firebase config →</a>
-    </div>
+<div id="offline-banner">⚡ You're offline — game still works, progress is saving locally</div>
+
+<div id="header">
+  <div>
+    <div class="title">☕ Kopi O King</div>
+    <div class="sub">Singapore Hawker Clicker</div>
   </div>
-
-  <!-- ═══════════════════════════════════════════════════════
-       SCREEN 2 · Profile Setup
-  ═══════════════════════════════════════════════════════ -->
-  <div id="s-profile" class="screen centered">
-    <div class="profile-box">
-      <h2 class="profile-heading">Who are you?</h2>
-      <div>
-        <label class="form-label" for="p-name">Your name</label>
-        <input id="p-name" class="text-input" type="text" placeholder="e.g. Mum" maxlength="20" autocomplete="off" autocorrect="off">
-      </div>
-      <div>
-        <label class="form-label">Choose an emoji</label>
-        <div id="p-emoji" class="emoji-grid"></div>
-      </div>
-      <div>
-        <label class="form-label">Pick your colour</label>
-        <div id="p-color" class="color-row"></div>
-      </div>
-      <button id="p-go" class="btn-primary" disabled>Let's go →</button>
-    </div>
+  <div>
+    <div id="money-display">$0</div>
+    <div id="cps-display">$0/sec</div>
   </div>
+</div>
 
-  <!-- ═══════════════════════════════════════════════════════
-       SCREEN 3 · Home
-  ═══════════════════════════════════════════════════════ -->
-  <div id="s-home" class="screen">
-    <header class="app-hdr">
-      <span class="app-hdr-title">FamChat</span>
-      <button id="home-gear" class="icon-btn" title="Settings">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="3"/>
-          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
-        </svg>
-      </button>
-    </header>
-    <div id="quote-card" class="quote-card">
-      <div class="quote-card-emoji">🌟</div>
-      <div class="quote-card-body">
-        <div class="quote-card-text">Family is where life begins and love never ends.</div>
-        <div class="quote-card-attr"></div>
-      </div>
-    </div>
-    <div id="home-list" class="home-list"></div>
-    <button class="ping-fab" onclick="doPing()" title="Ping the family!">📢</button>
+<div id="click-zone">
+  <div id="cup-btn" role="button" aria-label="Tap to brew kopi">
+    <div class="steam s1"></div>
+    <div class="steam s2"></div>
+    <div class="steam s3"></div>
+    <div id="cup-emoji">☕</div>
+    <div id="floats"></div>
   </div>
-
-  <!-- ═══════════════════════════════════════════════════════
-       SCREEN 4 · Chat
-  ═══════════════════════════════════════════════════════ -->
-  <div id="s-chat" class="screen">
-    <header class="chat-hdr">
-      <button class="icon-btn" onclick="goBack()">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M19 12H5"/><path d="M12 5l-7 7 7 7"/>
-        </svg>
-      </button>
-      <div id="chat-hdr-info" class="chat-hdr-info"></div>
-    </header>
-    <div class="chat-body">
-      <div id="messages" class="messages"></div>
-      <div id="new-chip" class="new-chip" onclick="scrollToBottom(false)"></div>
-    </div>
-    <div id="typing-bar" class="typing-bar"></div>
-    <div class="compose-area">
-      <div id="compose-bar" class="compose-bar">
-        <div id="compose-normal">
-          <button id="mic-btn" class="mic-btn" title="Voice message">🎤</button>
-          <textarea id="compose-ta" class="compose-ta" placeholder="Message…" rows="1"></textarea>
-          <button id="send-btn" class="send-btn" title="Send">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round">
-              <line x1="22" y1="2" x2="11" y2="13"/>
-              <polygon points="22 2 15 22 11 13 2 9 22 2"/>
-            </svg>
-          </button>
-        </div>
-        <div id="compose-rec">
-          <button class="rec-cancel" onclick="cancelRecording()">✕</button>
-          <div class="rec-dot"></div>
-          <span id="rec-timer" class="rec-timer">0:00</span>
-          <div style="flex:1"></div>
-          <button class="rec-send" onclick="stopRecording()">✓ Send</button>
-        </div>
-      </div>
-    </div>
+  <div id="tap-hint" class="tap-hint">TAP TO BREW!</div>
+  <div id="click-val">+$1 per tap</div>
+  <div id="quick-stats">
+    <div class="stat-chip" id="chip-items">🏪 0 items</div>
+    <div class="stat-chip" id="chip-total">💰 $0 earned</div>
   </div>
+</div>
 
-  <!-- ═══════════════════════════════════════════════════════
-       SCREEN 5 · Settings
-  ═══════════════════════════════════════════════════════ -->
-  <div id="s-settings" class="screen">
-    <header class="settings-hdr">
-      <button id="s-back" class="icon-btn">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M19 12H5"/><path d="M12 5l-7 7 7 7"/>
-        </svg>
-      </button>
-      <span class="settings-title">Settings</span>
-    </header>
-    <div class="settings-body">
-      <div>
-        <div class="sec-label">Your Profile</div>
-        <div style="margin-bottom:12px">
-          <label class="form-label" for="s-name">Display name</label>
-          <input id="s-name" class="text-input" type="text" maxlength="20" autocorrect="off">
-        </div>
-        <div style="margin-bottom:12px">
-          <label class="form-label">Emoji</label>
-          <div id="s-emoji" class="emoji-grid"></div>
-        </div>
-        <div style="margin-bottom:18px">
-          <label class="form-label">Colour</label>
-          <div id="s-color" class="color-row"></div>
-        </div>
-        <button id="s-save" class="btn-primary">Save changes</button>
+<div id="tab-bar">
+  <button class="tab-btn active" data-tab="items"    onclick="switchTab('items')"   >🍽️ Menu</button>
+  <button class="tab-btn"        data-tab="upgrades" onclick="switchTab('upgrades')">⬆️ Upgrades</button>
+  <button class="tab-btn"        data-tab="stats"    onclick="switchTab('stats')"   >📊 Stats</button>
+  <button class="tab-btn"        data-tab="settings" onclick="switchTab('settings')">⚙️ Settings</button>
+</div>
+
+<div id="list"></div>
+
+<div id="ms-toast"></div>
+<div id="oe-toast"></div>
+
+<script>
+// ── SW registration — M3: FIRST LINE before any async ─────────────────────
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./sw.js').catch(() => {});
+}
+
+// ── Onboarding ────────────────────────────────────────────────────────────────
+const OB_KEY='kok-intro-v1';
+
+// Pixel art palette
+const OB_PAL={
+  A:'#f59e0b',D:'#92400e',W:'#fef3c7',K:'#1c0e04',
+  S:'#78716c',R:'#dc2626',Y:'#fbbf24',C:'#22d3ee',
+  M:'#292524',L:'#e2d9c8',B:'#1d4ed8',P:'#7c3aed',
+};
+
+// Render a string-array pixel sprite to SVG
+function renderPx(rows,px){
+  const H=rows.length,W=Math.max(...rows.map(r=>r.length));
+  let o=`<svg viewBox="0 0 ${W*px} ${H*px}" xmlns="http://www.w3.org/2000/svg">`;
+  for(let y=0;y<H;y++)for(let x=0;x<rows[y].length;x++){
+    const c=rows[y][x];if(c==='.'||!OB_PAL[c])continue;
+    o+=`<rect x="${x*px}" y="${y*px}" width="${px}" height="${px}" fill="${OB_PAL[c]}"/>`;
+  }
+  return o+'</svg>';
+}
+
+// ── Pixel sprites (12–13 wide × 12–13 tall, px=10 → ~120×130 px) ────────────
+
+// Slide 1: Kopi cup with steam (13×12)
+const CUP_ART=[
+  '.....CC.CC...',
+  '......C.C....',
+  '.............',
+  '....AAAAAAA..',
+  '...AAAAAAAAA.',
+  '...A.MMMMMA.A',
+  '...A.MMMMMA..',
+  '...A.MMMMMA.A',
+  '...A.MMMMMA..',
+  '...AAAAAAAAA.',
+  '....AAAAAAA..',
+  '..AAAAAAAAAAA',
+];
+
+// Slide 2: Uncle Ah Kow — apron, smile, chunky sprite (12×13)
+const UNCLE_ART=[
+  '....DDDD....',
+  '...DDDDDD...',
+  '...DDDDDD...',
+  '...DMDDMD...',
+  '...DDDDDD...',
+  '....MDDM....',
+  '..DDDDDDDD..',
+  '..WWWWWWWW..',
+  '.WWWWWWWWWW.',
+  '.WWWWWWWWWW.',
+  '..WWWWWWWW..',
+  '..SS....SS..',
+  '..KK....KK..',
+];
+
+// Slide 3: The Ang Moh Inspector — beret, blue suit, red tie (12×13)
+const INSP_ART=[
+  '..PPPPPPPP..',
+  '...PPPPPP...',
+  '...LLLLLL...',
+  '...LMLLML...',
+  '...LLLLLL...',
+  '....MLLM....',
+  '..BBBBBBBB..',
+  '..B.LLLL.B..',
+  '..B.RRRR.B..',
+  '..BBBBBBBB..',
+  '..SS....SS..',
+  '..SS....SS..',
+  '..KK....KK..',
+];
+
+// Slide 4: Gold trophy with cyan sparkles (12×12)
+const TROPHY_ART=[
+  '...CC..CC...',
+  '..C......C..',
+  '...CC..CC...',
+  '............',
+  '....AAAA....',
+  '...AAAAAA...',
+  '..AAAAAAAA..',
+  '..A.YYYY.A..',
+  '..AAAAAAAA..',
+  '...AAAAAA...',
+  '....AAAA....',
+  '.AAAAAAAAAA.',
+];
+
+const SLIDES=[
+  {
+    bg:'#050512',badge:'✦ SEGA PRESENTS ✦',
+    art:CUP_ART,anim:true,
+    bigTitle:'KOPI O KING',sub:'A Singapore Hawker Epic',story:null,
+  },
+  {
+    bg:'#0a0400',badge:'● YEAR 1965 ●',
+    art:UNCLE_ART,
+    title:'UNCLE AH KOW',
+    story:'Last grandson of a Hokkien kopi master.\nHis kopi so shiok, even Pulau Ubin fishermen took a bumboat just to drink one cup.',
+  },
+  {
+    bg:'#06000e',badge:'⚠ DANGER INCOMING ⚠',
+    art:INSP_ART,
+    title:'THE ANG MOH INSPECTOR',
+    story:'One boh liao Tuesday, a mysterious ang moh arrived with a small red book.\n"I am from Michelin," he said.\nWalao eh. You sell tyre meh?',
+  },
+  {
+    bg:'#020a04',badge:'▶ PLAYER 1 READY ◀',
+    art:TROPHY_ART,
+    title:'YOUR TURN, CHAMP',
+    story:'Uncle Ah Kow retire liao. The stall is yours.\nTap. Brew. Hire aunties. Conquer Singapore.\nBecome the KOPI O KING.',
+    last:true,
+  },
+];
+
+function buildOnboarding(){
+  const el=document.getElementById('onboard');
+  el.innerHTML=SLIDES.map((s,i)=>{
+    const svg=renderPx(s.art,10);
+    const artCls='ob-art'+(s.anim?' ob-art-anim':'');
+    const textHtml=s.bigTitle
+      ?`<div class="ob-big-title">${s.bigTitle}</div><div class="ob-sub">${s.sub}</div>`
+      :`<div class="ob-title">${s.title}</div><div class="ob-story">${s.story.replace(/\n/g,'<br>')}</div>`;
+    const dots=SLIDES.map((_,j)=>`<div class="ob-dot${j===i?' active':''}"></div>`).join('');
+    const nextFn=s.last?'closeOnboard()':`obNext(${i})`;
+    const nextTxt=s.last?'START PLAYING ▶':'NEXT ▶';
+    return `<div class="ob-slide${i===0?' active':''}" id="ob-${i}" style="background:${s.bg};">
+      <div class="ob-top"><span class="ob-badge">${s.badge}</span></div>
+      <div class="${artCls}">${svg}</div>
+      <div class="ob-text">${textHtml}</div>
+      <div class="ob-nav">
+        <button class="ob-skip" onclick="closeOnboard()">Skip</button>
+        <div class="ob-dots">${dots}</div>
+        <button class="ob-next" onclick="${nextFn}">${nextTxt}</button>
       </div>
-      <div>
-        <div class="sec-label">Family Members</div>
-        <div id="s-members"></div>
-      </div>
-      <div>
-        <div class="sec-label">Appearance</div>
-        <div id="s-themes" class="theme-row"></div>
-        <div class="sec-label" style="margin-top:14px">Background Studio</div>
-        <button id="s-open-studio" class="btn-ghost">🎨 Open Drawing Studio</button>
-        <div id="s-bg-gallery" class="bg-gallery"></div>
-        <button id="s-rm-bg" class="btn-ghost" style="display:none;margin-top:4px">Remove custom background</button>
-      </div>
-      <div>
-        <div class="sec-label">Data</div>
-        <button id="s-clear" class="btn-ghost">Clear local cache</button>
-        <button id="s-reset" class="btn-danger">Reset app</button>
-      </div>
-      <div class="ver-str">FamChat v1.0</div>
-    </div>
-  </div>
+    </div>`;
+  }).join('');
+}
 
-  <!-- Offline banner -->
-  <div id="offline-banner"><div class="pulse"></div>Reconnecting…</div>
-  <div id="fc-toast"></div>
+function obNext(from){
+  document.getElementById('ob-'+from).classList.remove('active');
+  document.getElementById('ob-'+(from+1)).classList.add('active');
+}
 
-  <script>
-    // ══════════════════════════════════════════════════════════════════
-    // SERVICE WORKER — registered first, before any async code
-    // ══════════════════════════════════════════════════════════════════
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('./sw.js').catch(e => console.warn('SW:', e));
-    }
+function closeOnboard(){
+  localStorage.setItem(OB_KEY,'done');
+  const el=document.getElementById('onboard');
+  el.style.opacity='0';
+  setTimeout(()=>{el.style.display='none';el.style.opacity='';},420);
+}
 
-    // ══════════════════════════════════════════════════════════════════
-    // CONSTANTS
-    // ══════════════════════════════════════════════════════════════════
-    const EMOJIS = ['😀','😎','🤩','😄','🥳','🐯','🦁','🐼','🐸','🦊','🦋','🌟','⚡','🎮','🎯','🏆','🎸','🍀','🔥','💫','🌈','🦄','🧸','🎀'];
-    const COLORS = [
-      {hex:'#3b82f6'},{hex:'#22c55e'},{hex:'#f97316'},
-      {hex:'#a855f7'},{hex:'#ec4899'},{hex:'#14b8a6'}
-    ];
-    const RXN_EMOJIS = ['❤️','👍','😂','😮','😢','🔥'];
-    const DB_NAME = 'famchat-db';
-    const DB_VER = 1;
-    const MAX_MSGS = 50;
-    const TYPING_MS = 3000;
+function openOnboard(){
+  buildOnboarding();
+  const el=document.getElementById('onboard');
+  el.style.display='flex';
+}
 
-    const THEMES = {
-      ocean:  {
-        label:'🌊 Ocean',
-        bg:'#dff4fb', surface:'#f0faff', raised:'#ffffff', border:'#b3e0f5',
-        txPrimary:'#0c3d5a', txSec:'#0369a1', txMuted:'#0891b2',
-        inputBorder:'#7dd3fa', bubbleOther:'#e0f2fe', bubbleOtherTx:'#0c3d5a',
-        rxBg:'rgba(0,0,0,0.06)', rxOwnBg:'rgba(0,0,0,0.13)', light:true,
-      },
-      sunset: { label:'🌅 Sunset', bg:'#180b04', surface:'#2c1408', raised:'#401c0c', border:'#6a2c10', txSec:'#c07858', txMuted:'#7a3820', inputBorder:'#8a3e20' },
-      galaxy: { label:'🌌 Galaxy', bg:'#070412', surface:'#0f0922', raised:'#180d36', border:'#2c1a68', txSec:'#8878d0', txMuted:'#3c2898', inputBorder:'#3e2a90' },
-      forest: { label:'🌲 Forest', bg:'#030d06', surface:'#07190c', raised:'#0c2a14', border:'#164e20', txSec:'#52a868', txMuted:'#1e6830', inputBorder:'#1e6830' },
-      candy:  { label:'🍭 Candy',  bg:'#110310', surface:'#1f061e', raised:'#2e092c', border:'#541848', txSec:'#c858b8', txMuted:'#7a2070', inputBorder:'#881e7a' },
+// ── Game data ───────────────────────────────────────────────────────────────
+const ITEMS = [
+  {id:'kopi',        name:'Kopi O',          emoji:'☕', desc:'Classic Singapore black coffee',        baseCost:15,       baseCps:0.1   },
+  {id:'toast',       name:'Kaya Toast',       emoji:'🍞', desc:'Kaya & butter on crispy bread',         baseCost:100,      baseCps:0.5   },
+  {id:'teh',         name:'Teh Tarik',        emoji:'🧋', desc:'Pulled milk tea — very frothy',          baseCost:500,      baseCps:2     },
+  {id:'nasilemak',   name:'Nasi Lemak',       emoji:'🍚', desc:'Coconut rice + sambal + ikan bilis',     baseCost:2000,     baseCps:8     },
+  {id:'chickenrice', name:'Chicken Rice',     emoji:'🐓', desc:'Hainanese classic, queue every day!',   baseCost:8000,     baseCps:30    },
+  {id:'ckwt',        name:'Char Kway Teow',   emoji:'🍜', desc:'Wok hei! Big fire only lah',            baseCost:30000,    baseCps:100   },
+  {id:'laksa',       name:'Laksa',            emoji:'🍲', desc:'Katong style spicy coconut noodles',    baseCost:100000,   baseCps:350   },
+  {id:'satay',       name:'Satay',            emoji:'🍢', desc:'Charcoal skewers + peanut sauce',       baseCost:400000,   baseCps:1200  },
+  {id:'chillicrab',  name:'Chilli Crab',      emoji:'🦀', desc:"Singapore's most famous dish!",         baseCost:1500000,  baseCps:4500  },
+  {id:'msw',         name:'Mao Shan Wang',    emoji:'👑', desc:'King of fruits. Very atas, very power', baseCost:6000000,  baseCps:18000 },
+];
+
+const UPGRADES = [
+  {id:'u1', emoji:'🥄', name:'Better Ladle',          desc:'Brew twice as fast. Click ×2.',              cost:75,       cm:2, pm:1  },
+  {id:'u2', emoji:'👴', name:'Regular Customers',     desc:'Loyal uncles boost production. CPS ×1.5.',   cost:800,      cm:1, pm:1.5},
+  {id:'u3', emoji:'⏰', name:'Morning Rush',           desc:'Office hour crowd floods in. Click ×3.',      cost:5000,     cm:3, pm:1  },
+  {id:'u4', emoji:'📸', name:'Food Blog Famous',      desc:'IG post went viral overnight. CPS ×2.',       cost:30000,    cm:1, pm:2  },
+  {id:'u5', emoji:'⭐', name:'Michelin Bib Gourmand', desc:'International recognition! CPS ×3.',          cost:150000,   cm:1, pm:3  },
+  {id:'u6', emoji:'🤫', name:"Auntie's Secret Recipe",desc:'3 generations of secrets. Click ×5.',        cost:600000,   cm:5, pm:1  },
+  {id:'u7', emoji:'🌟', name:'Michelin Star',          desc:'First hawker to get a star! ALL ×5.',         cost:3000000,  cm:5, pm:5  },
+];
+
+const MILESTONES = [
+  {at:50,        emoji:'😊', msg:"Eh, not bad leh! First $50 earned!"},
+  {at:500,       emoji:'😄', msg:"Walao, regulars coming back every day!"},
+  {at:5000,      emoji:'🎉', msg:"Your stall got lobang! Queue forming outside!"},
+  {at:50000,     emoji:'📺', msg:"CNA news wants to feature you! So famous!"},
+  {at:500000,    emoji:'✈️', msg:"Tourists fly in just for your food!"},
+  {at:5000000,   emoji:'⭐', msg:"Michelin reviewer spotted at your stall!"},
+  {at:50000000,  emoji:'🏆', msg:"10 outlets islandwide. You made it!"},
+  {at:500000000, emoji:'👑', msg:"Kopi O King of the Universe! Shiok ah!"},
+];
+
+// ── State ───────────────────────────────────────────────────────────────────
+const gs = {
+  money:0, total:0,
+  owned:{},
+  bought:new Set(),
+  clickMulti:1, cpsMulti:1,
+  lastMs:-1,
+  playTime:0,
+  highCps:0,
+  savedAt:null,
+  tab:'items',
+  fid:0,
+};
+
+// ── Helpers ─────────────────────────────────────────────────────────────────
+function fmt(n){
+  if(n>=1e12)return(n/1e12).toFixed(1)+'T';
+  if(n>=1e9) return(n/1e9).toFixed(1)+'B';
+  if(n>=1e6) return(n/1e6).toFixed(1)+'M';
+  if(n>=1e3) return(n/1e3).toFixed(1)+'K';
+  return Math.floor(n).toString();
+}
+function fmtTime(s){
+  const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),sc=Math.floor(s%60);
+  if(h>0)return h+'h '+m+'m';
+  if(m>0)return m+'m '+sc+'s';
+  return sc+'s';
+}
+function fmtSaved(iso){
+  if(!iso)return'Not saved yet';
+  const d=Math.floor((Date.now()-new Date(iso))/1000);
+  if(d<10)return'Just now';
+  if(d<60)return d+'s ago';
+  if(d<3600)return Math.floor(d/60)+'m ago';
+  return Math.floor(d/3600)+'h ago';
+}
+function costFor(item){
+  return Math.floor(item.baseCost*Math.pow(1.15,gs.owned[item.id]||0));
+}
+function calcCps(){
+  return ITEMS.reduce((s,it)=>s+it.baseCps*(gs.owned[it.id]||0),0)*gs.cpsMulti;
+}
+function clickVal(){
+  return Math.max(1,gs.clickMulti*(1+calcCps()*0.05))*(rushOn?10:1);
+}
+function totalOwned(){
+  return Object.values(gs.owned).reduce((a,b)=>a+b,0);
+}
+
+// ── IndexedDB ───────────────────────────────────────────────────────────────
+let db=null;
+
+function initDB(){
+  return new Promise((resolve,reject)=>{
+    const req=indexedDB.open('kokDB',1);
+    req.onupgradeneeded=(e)=>{
+      const d=e.target.result;
+      if(!d.objectStoreNames.contains('save')){  // M7
+        d.createObjectStore('save',{keyPath:'id'});
+      }
     };
+    req.onsuccess=(e)=>{db=e.target.result;resolve();};
+    req.onerror=()=>reject(req.error);
+  });
+}
 
-    const QUOTES = [
-      { q:"Family is not an important thing — it's everything.", a:"Michael J. Fox" },
-      { q:"In family life, love is the oil that eases friction.", a:"Friedrich Nietzsche" },
-      { q:"A happy family is but an earlier heaven.", a:"George Bernard Shaw" },
-      { q:"Family means nobody gets left behind or forgotten.", a:"Lilo & Stitch" },
-      { q:"The love of a family is life's greatest blessing.", a:"" },
-      { q:"What can you do to promote world peace? Go home and love your family.", a:"Mother Teresa" },
-      { q:"The bond that links a true family is not blood, but respect and joy.", a:"Richard Bach" },
-      { q:"You don't choose your family. They are a gift to you.", a:"Desmond Tutu" },
-      { q:"A family is a little world created by love.", a:"" },
-      { q:"Home is where love resides and memories are made.", a:"" },
-      { q:"Rejoice with your family in the beautiful land of life!", a:"Albert Einstein" },
-      { q:"The most important thing in the world is family and love.", a:"John Wooden" },
-      { q:"To us, family means putting your arms around each other.", a:"Barbara Bush" },
-      { q:"In time of test, family is best.", a:"Burmese Proverb" },
-      { q:"Other things may change us, but we start and end with family.", a:"Anthony Brandt" },
-      { q:"Family is the heart of a home.", a:"" },
-      { q:"Families are the compass that guide us through life.", a:"" },
-      { q:"Call it a clan, a network, or a tribe — it's still a family.", a:"Jane Howard" },
-      { q:"Where there is family, there is love, warmth, and belonging.", a:"" },
-      { q:"The memories we make with our family are everything.", a:"Candace Cameron Bure" },
-    ];
+function saveGame(){
+  if(!db)return Promise.resolve();
+  gs.savedAt=new Date().toISOString();
+  const data={
+    id:'game',
+    money:gs.money, total:gs.total,
+    owned:{...gs.owned},
+    bought:[...gs.bought],
+    clickMulti:gs.clickMulti, cpsMulti:gs.cpsMulti,
+    lastMs:gs.lastMs,
+    playTime:gs.playTime,
+    highCps:gs.highCps,
+    savedAt:gs.savedAt,
+  };
+  return new Promise((resolve)=>{
+    const tx=db.transaction('save','readwrite');
+    tx.objectStore('save').put(data);
+    tx.oncomplete=resolve;
+    tx.onerror=resolve;
+  });
+}
 
-    const QUOTE_EMOJIS = ['🌟','💫','🌈','🏡','❤️','🤝','🌸','⭐','🌻','💪','🫶','✨','🌺','🎉','🏅'];
-
-    // ══════════════════════════════════════════════════════════════════
-    // HELPERS
-    // ══════════════════════════════════════════════════════════════════
-    function uuid() {
-      return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
-        (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16));
-    }
-
-    function localDateStr(d) {
-      return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-    }
-    function today() { return localDateStr(new Date()); }
-
-    function hexToRgba(hex, a) {
-      const r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
-      return `rgba(${r},${g},${b},${a})`;
-    }
-
-    function esc(s) {
-      return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-    }
-
-    function fmtTime(ts) {
-      const d = new Date(ts), now = new Date();
-      const t = d.toLocaleTimeString('en-SG', {hour:'numeric', minute:'2-digit', hour12:true});
-      const ds = localDateStr(d);
-      if (ds === today()) return t;
-      const yd = new Date(now); yd.setDate(yd.getDate()-1);
-      if (ds === localDateStr(yd)) return `Yesterday ${t}`;
-      if (d.getFullYear() === now.getFullYear()) {
-        return `${d.toLocaleDateString('en-SG',{weekday:'short',day:'numeric',month:'short'})} · ${t}`;
+function loadGame(){
+  if(!db)return Promise.resolve();
+  return new Promise((resolve)=>{
+    const tx=db.transaction('save','readonly');
+    const req=tx.objectStore('save').get('game');
+    req.onsuccess=()=>{
+      const d=req.result;
+      if(d){
+        gs.money      =d.money||0;
+        gs.total      =d.total||0;
+        gs.owned      =d.owned||{};
+        gs.bought     =new Set(d.bought||[]);
+        gs.clickMulti =d.clickMulti||1;
+        gs.cpsMulti   =d.cpsMulti||1;
+        gs.lastMs     =d.lastMs||-1;
+        gs.playTime   =d.playTime||0;
+        gs.highCps    =d.highCps||0;
+        gs.savedAt    =d.savedAt||null;
       }
-      return `${d.getDate()} ${d.toLocaleString('en-SG',{month:'short'})} ${d.getFullYear()} · ${t}`;
-    }
-
-    function fmtDivider(ts) {
-      const d = new Date(ts), ds = localDateStr(d);
-      if (ds === today()) return 'Today';
-      const yd = new Date(); yd.setDate(yd.getDate()-1);
-      if (ds === localDateStr(yd)) return 'Yesterday';
-      return d.toLocaleDateString('en-SG',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
-    }
-
-    function mkDmId(a, b) { return [a,b].sort().join('--'); }
-
-    let _toastTimer;
-    function showToast(msg, ms=2800) {
-      const el = document.getElementById('fc-toast');
-      if (!el) return;
-      el.textContent = msg; el.classList.add('show');
-      clearTimeout(_toastTimer);
-      _toastTimer = setTimeout(() => el.classList.remove('show'), ms);
-    }
-
-    // ── Themes ────────────────────────────────────────────────────
-    // Wave SVG (3-layer ocean wave, encoded for CSS url())
-    const WAVE_URI = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 220' preserveAspectRatio='none'%3E%3Cpath fill='%2338bdf8' fill-opacity='0.45' d='M0,90 C180,50 360,120 540,85 C720,50 900,120 1080,85 C1260,50 1350,95 1440,85 L1440,220 L0,220Z'/%3E%3Cpath fill='%230ea5e9' fill-opacity='0.32' d='M0,120 C180,155 360,95 540,130 C720,165 900,105 1080,130 C1260,155 1350,120 1440,130 L1440,220 L0,220Z'/%3E%3Cpath fill='%230284c7' fill-opacity='0.22' d='M0,155 C180,135 360,165 540,150 C720,135 900,165 1080,150 C1260,135 1350,158 1440,150 L1440,220 L0,220Z'/%3E%3C/svg%3E";
-
-    function applyTheme(name) {
-      const t = THEMES[name] || THEMES.ocean;
-      const r = document.documentElement.style;
-      r.setProperty('--bg',              t.bg);
-      r.setProperty('--surface',         t.surface);
-      r.setProperty('--surface-raised',  t.raised);
-      r.setProperty('--bubble-other',    t.bubbleOther  || t.raised);
-      r.setProperty('--bubble-other-tx', t.bubbleOtherTx || '#dde4ed');
-      r.setProperty('--border',          t.border);
-      r.setProperty('--compose-bg',      t.bg);
-      r.setProperty('--input-bg',        t.surface);
-      r.setProperty('--input-border',    t.inputBorder);
-      r.setProperty('--tx-primary',      t.txPrimary || '#e8f3fc');
-      r.setProperty('--tx-secondary',    t.txSec);
-      r.setProperty('--tx-muted',        t.txMuted);
-      r.setProperty('--rx-bg',           t.rxBg    || 'rgba(255,255,255,0.07)');
-      r.setProperty('--rx-own-bg',       t.rxOwnBg || 'rgba(255,255,255,0.18)');
-      r.setProperty('--bg-wave',         t.light ? `url("${WAVE_URI}")` : 'none');
-      r.setProperty('--bg-wave-size',    '100% 38%');
-      const mc = document.querySelector('meta[name="theme-color"]');
-      if (mc) mc.content = t.bg;
-      localStorage.setItem('fc_theme', name);
-    }
-
-    // ── Quote card ────────────────────────────────────────────────
-    let _quoteTimer, _quoteIdx = -1;
-    function initQuoteCard() {
-      _quoteIdx = Math.floor(Math.random() * QUOTES.length);
-      showQuote();
-      clearInterval(_quoteTimer);
-      _quoteTimer = setInterval(cycleQuote, 25000);
-    }
-    function showQuote() {
-      const card = document.getElementById('quote-card'); if (!card) return;
-      const { q, a } = QUOTES[_quoteIdx];
-      const emoji = QUOTE_EMOJIS[Math.floor(Math.random() * QUOTE_EMOJIS.length)];
-      card.querySelector('.quote-card-emoji').textContent = emoji;
-      card.querySelector('.quote-card-text').textContent  = q;
-      card.querySelector('.quote-card-attr').textContent  = a ? `— ${a}` : '';
-    }
-    function cycleQuote() {
-      const card = document.getElementById('quote-card'); if (!card) return;
-      card.classList.add('fading');
-      setTimeout(() => {
-        _quoteIdx = (_quoteIdx + 1) % QUOTES.length;
-        showQuote();
-        card.classList.remove('fading');
-      }, 360);
-    }
-
-    // ══════════════════════════════════════════════════════════════════
-    // BACKGROUND STUDIO
-    // ══════════════════════════════════════════════════════════════════
-    let _dt='pen', _dc2=null, _dColor='#3b82f6', _dSize=2, _dFill=false;
-    let _drawing2=false, _dStart=null, _snap2=null, _dHist=[], _polyPts=[], _lastTap2=0;
-
-    function openStudio(loadName) {
-      showScreen('studio');
-      setTimeout(() => _initCanvas(loadName), 80);
-    }
-
-    function _initCanvas(loadName) {
-      const cv = document.getElementById('draw-canvas');
-      _dc2 = cv.getContext('2d');
-      const dpr = Math.min(window.devicePixelRatio||1, 2);
-      const W = cv.offsetWidth, H = cv.offsetHeight;
-      // If layout hasn't settled yet, retry once more
-      if (!W || !H) { setTimeout(() => _initCanvas(loadName), 100); return; }
-      cv.width = W * dpr; cv.height = H * dpr;
-      _dc2.scale(dpr, dpr);
-      // Fill background
-      const bg = getComputedStyle(document.documentElement).getPropertyValue('--bg').trim()||'#dff4fb';
-      _dc2.fillStyle = bg;
-      _dc2.fillRect(0,0,W,H);
-      // Load existing custom or named bg
-      const src = loadName
-        ? localStorage.getItem(`fc_bg_${loadName}`)
-        : localStorage.getItem('fc_active_bg');
-      if (src) {
-        const img = new Image();
-        img.onload = () => _dc2.drawImage(img,0,0,W,H);
-        img.src = src;
-      }
-      if (loadName) document.getElementById('studio-name').value = loadName;
-      _dHist=[]; _polyPts=[]; _drawing2=false;
-      // Events (attach fresh)
-      cv.onmousedown  = _dStart2;
-      cv.onmousemove  = _dMove2;
-      cv.onmouseup    = _dEnd2;
-      cv.ontouchstart = e => { e.preventDefault(); _dStart2(e); };
-      cv.ontouchmove  = e => { e.preventDefault(); _dMove2(e); };
-      cv.ontouchend   = e => { e.preventDefault(); _dEnd2(e); };
-      _updateSwatches();
-    }
-
-    function closeStudio() { _polyPts=[]; _drawing2=false; showScreen('home'); }
-
-    function _cvPos(e) {
-      const cv = document.getElementById('draw-canvas');
-      const r = cv.getBoundingClientRect();
-      const src = (e.touches && e.touches.length)
-        ? e.touches[0]
-        : (e.changedTouches && e.changedTouches.length ? e.changedTouches[0] : e);
-      return { x: src.clientX - r.left, y: src.clientY - r.top };
-    }
-
-    function _pushH() {
-      const cv = document.getElementById('draw-canvas');
-      if (_dHist.length >= 20) _dHist.shift();
-      _dHist.push(_dc2.getImageData(0, 0, cv.width, cv.height));
-    }
-
-    function _dStart2(e) {
-      const p = _cvPos(e);
-      if (_dt === 'poly') {
-        const now = Date.now();
-        if (now - _lastTap2 < 320 && _polyPts.length >= 2) {
-          _closePoly(); _lastTap2=0; return;
-        }
-        _lastTap2 = now;
-        if (_polyPts.length === 0) _pushH();
-        _polyPts.push(p);
-        _dc2.beginPath(); _dc2.arc(p.x,p.y,_dSize/2+2,0,Math.PI*2);
-        _dc2.fillStyle=_dColor; _dc2.fill();
-        if (_polyPts.length > 1) {
-          const prev=_polyPts[_polyPts.length-2];
-          _dc2.beginPath(); _dc2.moveTo(prev.x,prev.y); _dc2.lineTo(p.x,p.y);
-          _dc2.strokeStyle=_dColor; _dc2.lineWidth=_dSize; _dc2.lineCap='round'; _dc2.stroke();
-        }
-        return;
-      }
-      _drawing2=true; _dStart=p;
-      if (_dt==='pen'||_dt==='era') {
-        _pushH();
-        _dc2.beginPath(); _dc2.moveTo(p.x,p.y);
-      } else {
-        const cv=document.getElementById('draw-canvas');
-        _snap2=_dc2.getImageData(0,0,cv.width,cv.height);
-      }
-    }
-
-    function _dMove2(e) {
-      if (!_drawing2) return;
-      const p = _cvPos(e);
-      _dc2.lineCap='round'; _dc2.lineJoin='round';
-      if (_dt==='pen') {
-        _dc2.lineTo(p.x,p.y); _dc2.strokeStyle=_dColor; _dc2.lineWidth=_dSize; _dc2.stroke();
-      } else if (_dt==='era') {
-        const bg=getComputedStyle(document.documentElement).getPropertyValue('--bg').trim()||'#dff4fb';
-        _dc2.lineTo(p.x,p.y); _dc2.strokeStyle=bg; _dc2.lineWidth=_dSize*5; _dc2.stroke();
-      } else if (_snap2) {
-        const cv=document.getElementById('draw-canvas');
-        _dc2.putImageData(_snap2,0,0); _drawShape(_dt,_dStart,p);
-      }
-    }
-
-    function _dEnd2(e) {
-      if (!_drawing2) return;
-      _drawing2=false;
-      if (_dt==='pen'||_dt==='era') { return; }
-      if (_snap2) {
-        const p=_cvPos(e);
-        const cv=document.getElementById('draw-canvas');
-        _dc2.putImageData(_snap2,0,0); _pushH(); _drawShape(_dt,_dStart,p); _snap2=null;
-      }
-    }
-
-    function _drawShape(tool,a,b) {
-      _dc2.strokeStyle=_dColor; _dc2.fillStyle=_dColor; _dc2.lineWidth=_dSize;
-      if (tool==='rect') {
-        if (_dFill) _dc2.fillRect(a.x,a.y,b.x-a.x,b.y-a.y);
-        else _dc2.strokeRect(a.x,a.y,b.x-a.x,b.y-a.y);
-      } else if (tool==='circ') {
-        const cx=(a.x+b.x)/2,cy=(a.y+b.y)/2,rx=Math.abs(b.x-a.x)/2,ry=Math.abs(b.y-a.y)/2;
-        _dc2.beginPath(); _dc2.ellipse(cx,cy,Math.max(rx,1),Math.max(ry,1),0,0,Math.PI*2);
-        if (_dFill) _dc2.fill(); else _dc2.stroke();
-      }
-    }
-
-    function _closePoly() {
-      if (_polyPts.length < 2) return;
-      _dc2.beginPath(); _dc2.moveTo(_polyPts[0].x,_polyPts[0].y);
-      _polyPts.forEach(p=>_dc2.lineTo(p.x,p.y));
-      _dc2.closePath();
-      if (_dFill) { _dc2.fillStyle=_dColor; _dc2.fill(); }
-      _dc2.strokeStyle=_dColor; _dc2.lineWidth=_dSize; _dc2.stroke();
-      _polyPts=[];
-    }
-
-    function setTool(t) {
-      _dt=t; _polyPts=[];
-      ['pen','rect','circ','poly','era'].forEach(id=>{
-        const b=document.getElementById(`tb-${id}`); if(b) b.classList.toggle('on',id===t);
-      });
-      const tip=document.getElementById('poly-tip');
-      if(tip) tip.style.display=t==='poly'?'block':'none';
-    }
-
-    function pickColor(hex) {
-      _dColor=hex;
-      const sw=document.getElementById('studio-sw'); if(sw) sw.style.background=hex;
-      const hi=document.getElementById('hex-in'); if(hi) hi.value=hex;
-    }
-
-    function _onHex() {
-      const v=(document.getElementById('hex-in')||{}).value||'';
-      if(/^#[0-9a-fA-F]{6}$/.test(v)) pickColor(v);
-    }
-
-    function setSz(w,btn) {
-      _dSize=w;
-      document.querySelectorAll('.sz').forEach(b=>b.classList.remove('on'));
-      if(btn) btn.classList.add('on');
-    }
-
-    function toggleFill() {
-      _dFill=!_dFill;
-      const b=document.getElementById('tb-fill'); if(b) b.classList.toggle('on',_dFill);
-    }
-
-    function undoDraw() {
-      if(!_dHist.length) return;
-      _dc2.putImageData(_dHist.pop(),0,0);
-    }
-
-    function clearCanvas() {
-      const cv=document.getElementById('draw-canvas');
-      _pushH();
-      const bg=getComputedStyle(document.documentElement).getPropertyValue('--bg').trim()||'#dff4fb';
-      _dc2.fillStyle=bg; _dc2.fillRect(0,0,cv.offsetWidth,cv.offsetHeight);
-      _polyPts=[];
-    }
-
-    function saveBackground() {
-      const cv=document.getElementById('draw-canvas');
-      const name=(document.getElementById('studio-name').value.trim()||'My Background').replace(/[^\w\s-]/g,'').trim().slice(0,30)||'My Background';
-      try {
-        const url=cv.toDataURL('image/jpeg',0.82);
-        localStorage.setItem(`fc_bg_${name}`,url);
-        applyCustomBg(url);
-        showToast(`✅ "${name}" saved & applied!`);
-      } catch(e) { showToast('Save failed — try Clear first then redraw'); }
-    }
-
-    function applyCustomBg(url) {
-      const r=document.documentElement.style;
-      r.setProperty('--bg-wave',`url("${url}")`);
-      r.setProperty('--bg-wave-size','cover');
-      localStorage.setItem('fc_active_bg',url);
-    }
-
-    function removeCustomBg() {
-      localStorage.removeItem('fc_active_bg');
-      const r=document.documentElement.style;
-      r.setProperty('--bg-wave-size','100% 38%');
-      applyTheme(localStorage.getItem('fc_theme')||'ocean');
-      showToast('Custom background removed');
-    }
-
-    function deleteSavedBg(name,row) {
-      localStorage.removeItem(`fc_bg_${name}`);
-      if(row) row.remove();
-      showToast(`"${name}" deleted`);
-    }
-
-    function _updateSwatches() {
-      const sw=document.getElementById('studio-sw'); if(sw) sw.style.background=_dColor;
-      const hi=document.getElementById('hex-in'); if(hi) { hi.value=_dColor; hi.oninput=_onHex; }
-    }
-
-    // ── Ping audio ────────────────────────────────────────────────
-    let _audioCtx = null;
-
-    function getAudioCtx() {
-      try {
-        if (!_audioCtx) _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        if (_audioCtx.state === 'suspended') _audioCtx.resume().catch(()=>{});
-        return _audioCtx;
-      } catch(e) { return null; }
-    }
-
-    // Two-note ascending chime: A5 (880Hz) → E6 (1318Hz)
-    function playPingSound() {
-      const ctx = getAudioCtx(); if (!ctx) return;
-      [[880, 0], [1318.5, 0.22]].forEach(([freq, delay]) => {
-        const osc  = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.connect(gain); gain.connect(ctx.destination);
-        osc.type = 'sine';
-        osc.frequency.value = freq;
-        const t = ctx.currentTime + delay;
-        gain.gain.setValueAtTime(0, t);
-        gain.gain.linearRampToValueAtTime(0.38, t + 0.012);
-        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.52);
-        osc.start(t); osc.stop(t + 0.55);
-      });
-    }
-
-    // Unlock AudioContext on first touch so received pings also play
-    document.addEventListener('pointerdown', () => { getAudioCtx(); }, { once: true, passive: true });
-
-    // Refresh badge when app returns to foreground
-    document.addEventListener('visibilitychange', () => {
-      if (document.visibilityState === 'visible') updateBadge();
-    });
-
-    // ── Ping ──────────────────────────────────────────────────────
-    async function doPing() {
-      const fab = document.querySelector('.ping-fab');
-      if (fab) { fab.style.transform='scale(.82)'; fab.style.animation='none'; setTimeout(()=>{ fab.style.transform=''; fab.style.animation=''; }, 220); }
-      playPingSound();
-      try {
-        await fbDb.ref(`/pings/${uuid()}`).set({ senderId:me.id, senderName:me.name, senderEmoji:me.emoji, ts:Date.now() });
-        showToast('📢 Ping sent to the family!');
-      } catch(e) { showToast('Could not send ping — check connection'); }
-    }
-
-    function listenPings() {
-      let ready = false;
-      fbDb.ref('/pings').limitToLast(1).on('child_added', snap => {
-        if (!ready) { ready = true; return; } // skip pre-existing ping on first load
-        const v = snap.val();
-        if (!v || v.senderId === me.id) return;
-        playPingSound();
-        showToast(`${v.senderEmoji} ${v.senderName} is pinging the family! 📢`, 4000);
-        if (document.visibilityState !== 'visible' && Notification.permission === 'granted') {
-          const n = new Notification(`${v.senderName} is pinging!`, { body:'📢 Family ping received', icon:'./icon-192.png' });
-          n.onclick = () => window.focus();
-        }
-      });
-    }
-
-    function avHtml(emoji, color, size) {
-      const sz = size==='sm'?36 : size==='bub'?30 : 46;
-      const fs = size==='sm'?17 : size==='bub'?14 : 22;
-      const cls = `av${size==='bub'?' bub':size==='sm'?' sm':''}`;
-      return `<div class="${cls}" style="width:${sz}px;height:${sz}px;font-size:${fs}px;background:${hexToRgba(color,.2)};border:1.5px solid ${color}">${emoji}</div>`;
-    }
-
-    // ══════════════════════════════════════════════════════════════════
-    // APP STATE
-    // ══════════════════════════════════════════════════════════════════
-    let db = null, fbDb = null, me = null;
-    let members = {};
-    let currentCh = null;   // {type, id, memberId}
-    let currentMsgs = [];
-    let lastMsgs = {};      // {channelId: {text, senderId, ts}}
-    let unread = {};        // {channelId: n}
-    let knownTs = {};       // {channelId: ts} — prevents false unread on first load
-    let typingTimer = null;
-    let typingActive = {};  // {memberId: true}
-    let chatMsgOff = null, chatTypOff = null;
-    let scrolledUp = false;
-    let dmLsns = {};        // {dmId: offFn}
-    let grpLsnActive = false;
-
-    // ══════════════════════════════════════════════════════════════════
-    // INDEXEDDB
-    // ══════════════════════════════════════════════════════════════════
-    function openDb() {
-      return new Promise((res,rej) => {
-        const req = indexedDB.open(DB_NAME, DB_VER);
-        req.onerror = () => rej(req.error);
-        req.onsuccess = () => { db = req.result; res(db); };
-        req.onupgradeneeded = e => {
-          const d = e.target.result;
-          if (!d.objectStoreNames.contains('messages')) {
-            const ms = d.createObjectStore('messages', {keyPath:'id'});
-            ms.createIndex('channelId','channelId',{unique:false});
-            ms.createIndex('ts','ts',{unique:false});
-          }
-          if (!d.objectStoreNames.contains('members')) {
-            d.createObjectStore('members', {keyPath:'id'});
-          }
-        };
-      });
-    }
-
-    function idbPut(store, obj) {
-      if (!db) return Promise.resolve();
-      return new Promise((res,rej) => {
-        const tx = db.transaction(store,'readwrite');
-        const r = tx.objectStore(store).put(obj);
-        r.onerror = () => rej(r.error);
-        r.onsuccess = () => res();
-      });
-    }
-
-    function idbAll(store) {
-      if (!db) return Promise.resolve([]);
-      return new Promise((res,rej) => {
-        const tx = db.transaction(store,'readonly');
-        const r = tx.objectStore(store).getAll();
-        r.onerror = () => rej(r.error);
-        r.onsuccess = () => res(r.result);
-      });
-    }
-
-    function idbByIdx(store, idx, val) {
-      if (!db) return Promise.resolve([]);
-      return new Promise((res,rej) => {
-        const tx = db.transaction(store,'readonly');
-        const r = tx.objectStore(store).index(idx).getAll(val);
-        r.onerror = () => rej(r.error);
-        r.onsuccess = () => res(r.result);
-      });
-    }
-
-    function idbClear(store) {
-      if (!db) return Promise.resolve();
-      return new Promise((res,rej) => {
-        const tx = db.transaction(store,'readwrite');
-        const r = tx.objectStore(store).clear();
-        r.onerror = () => rej(r.error);
-        r.onsuccess = () => res();
-      });
-    }
-
-    function pruneOld() {
-      if (!db) return;
-      const cutoff = Date.now() - 30*24*60*60*1000;
-      const tx = db.transaction('messages','readwrite');
-      tx.objectStore('messages').index('ts').openCursor(IDBKeyRange.upperBound(cutoff)).onsuccess = e => {
-        const c = e.target.result;
-        if (c) { c.delete(); c.continue(); }
-      };
-    }
-
-    // ══════════════════════════════════════════════════════════════════
-    // FIREBASE INIT
-    // ══════════════════════════════════════════════════════════════════
-    async function initFb(cfg) {
-      if (firebase.apps.length > 0) await firebase.app().delete();
-      firebase.initializeApp(cfg);
-      fbDb = firebase.database();
-      // Sign in anonymously so security rules (auth != null) pass.
-      // Firebase persists the anonymous session automatically across reloads.
-      await firebase.auth().signInAnonymously();
-    }
-
-    function testConn() {
-      return new Promise((res,rej) => {
-        const t = setTimeout(() => rej(new Error('Timed out after 8 seconds. Check your databaseURL.')), 8000);
-        fbDb.ref('ping').set(Date.now()).then(() => { clearTimeout(t); res(); }).catch(e => { clearTimeout(t); rej(e); });
-      });
-    }
-
-    // ══════════════════════════════════════════════════════════════════
-    // SCREEN ROUTING
-    // ══════════════════════════════════════════════════════════════════
-    function showScreen(name) {
-      ['firebase','profile','home','chat','settings','studio'].forEach(s => {
-        document.getElementById(`s-${s}`)?.classList.toggle('active', s===name);
-      });
-    }
-
-    // ══════════════════════════════════════════════════════════════════
-    // SCREEN 1 — FIREBASE SETUP
-    // ══════════════════════════════════════════════════════════════════
-    function initFirebaseScreen() {
-      showScreen('firebase');
-      const btn = document.getElementById('fc-btn');
-      const ta  = document.getElementById('fc-ta');
-      const err = document.getElementById('fc-err');
-
-      btn.onclick = async () => {
-        err.textContent = '';
-        let cfg;
-        try {
-          const m = ta.value.trim().match(/{[\s\S]*}/);
-          if (!m) throw new Error('No JSON object found');
-          cfg = JSON.parse(m[0]);
-        } catch(e) {
-          err.textContent = 'Invalid JSON — paste just the config object starting with {';
-          return;
-        }
-        if (!cfg.apiKey || !cfg.databaseURL) {
-          err.textContent = 'Config must include apiKey and databaseURL';
-          return;
-        }
-        btn.disabled = true; btn.textContent = 'Connecting…';
-        try {
-          await initFb(cfg);
-          await testConn();
-          localStorage.setItem('fc_firebase', JSON.stringify(cfg));
-          initProfileScreen();
-        } catch(e) {
-          err.textContent = e.message;
-          btn.disabled = false; btn.textContent = 'Connect & Save';
-        }
-      };
-    }
-
-    // ══════════════════════════════════════════════════════════════════
-    // SCREEN 2 — PROFILE SETUP
-    // ══════════════════════════════════════════════════════════════════
-    function buildPicker(gridEl, colorEl, selEmoji, selColor, onEmoji, onColor) {
-      gridEl.innerHTML = '';
-      EMOJIS.forEach(e => {
-        const c = document.createElement('div');
-        c.className = 'emoji-cell' + (e===selEmoji?' sel':'');
-        c.textContent = e;
-        c.onclick = () => {
-          gridEl.querySelectorAll('.emoji-cell').forEach(x => x.classList.remove('sel'));
-          c.classList.add('sel');
-          onEmoji(e);
-        };
-        gridEl.appendChild(c);
-      });
-      colorEl.innerHTML = '';
-      COLORS.forEach(cl => {
-        const d = document.createElement('div');
-        d.className = 'color-dot' + (cl.hex===selColor?' sel':'');
-        d.style.background = cl.hex;
-        d.onclick = () => {
-          colorEl.querySelectorAll('.color-dot').forEach(x => x.classList.remove('sel'));
-          d.classList.add('sel');
-          onColor(cl.hex);
-        };
-        colorEl.appendChild(d);
-      });
-    }
-
-    function initProfileScreen() {
-      showScreen('profile');
-      let selEmoji = null, selColor = null;
-      const nameIn = document.getElementById('p-name');
-      const goBtn  = document.getElementById('p-go');
-      nameIn.value = '';
-      nameIn.focus();
-
-      buildPicker(
-        document.getElementById('p-emoji'),
-        document.getElementById('p-color'),
-        null, null,
-        e  => { selEmoji = e;     checkReady(); },
-        cl => { selColor = cl;    checkReady(); }
-      );
-
-      function checkReady() { goBtn.disabled = !(nameIn.value.trim() && selEmoji && selColor); }
-      nameIn.oninput = checkReady;
-
-      goBtn.onclick = async () => {
-        if (!nameIn.value.trim() || !selEmoji || !selColor) return;
-        if ('Notification' in window) Notification.requestPermission().catch(()=>{});
-        me = { id:uuid(), name:nameIn.value.trim().slice(0,20), emoji:selEmoji, color:selColor, createdAt:Date.now() };
-        localStorage.setItem('fc_me', JSON.stringify(me));
-        await fbDb.ref(`/members/${me.id}`).set({name:me.name, emoji:me.emoji, color:me.color, lastSeen:Date.now()});
-        enterApp();
-      };
-    }
-
-    // ══════════════════════════════════════════════════════════════════
-    // APP ENTRY
-    // ══════════════════════════════════════════════════════════════════
-    async function enterApp() {
-      applyTheme(localStorage.getItem('fc_theme') || 'ocean');
-      try { const c = await idbAll('members'); c.forEach(m => { members[m.id] = m; }); } catch(e){}
-      fbDb.ref(`/members/${me.id}/lastSeen`).set(Date.now()).catch(()=>{});
-      setupConnectivity();
-      listenMembers();
-      listenPings();
-      initHomeScreen();
-    }
-
-    // ══════════════════════════════════════════════════════════════════
-    // CONNECTIVITY MONITOR
-    // ══════════════════════════════════════════════════════════════════
-    function setupConnectivity() {
-      const banner = document.getElementById('offline-banner');
-      fbDb.ref('.info/connected').on('value', snap => {
-        const on = !!snap.val();
-        if (banner) banner.style.display = on ? 'none' : 'flex';
-        const ta = document.getElementById('compose-ta');
-        if (ta && !on) ta.placeholder = "You're offline…";
-        if (ta && on)  ta.placeholder = 'Message…';
-      });
-    }
-
-    // ══════════════════════════════════════════════════════════════════
-    // MEMBERS LISTENER
-    // ══════════════════════════════════════════════════════════════════
-    function listenMembers() {
-      fbDb.ref('/members').on('value', snap => {
-        members = snap.val() || {};
-        Object.entries(members).forEach(([id,m]) => idbPut('members',{id,...m}).catch(()=>{}));
-        setupDmListeners();
-        renderHomeList();
-        if (currentCh?.type==='dm') renderChatHeader();
-        renderSettingsMembers();
-      });
-    }
-
-    // ══════════════════════════════════════════════════════════════════
-    // SCREEN 3 — HOME
-    // ══════════════════════════════════════════════════════════════════
-    function initHomeScreen() {
-      showScreen('home');
-      currentCh = null;
-      initQuoteCard();
-
-      document.getElementById('home-gear').onclick = () => { showScreen('settings'); initSettingsScreen(); };
-
-      if (!grpLsnActive) {
-        grpLsnActive = true;
-        fbDb.ref('/channels/group/lastMsg').on('value', snap => {
-          const v = snap.val(); if (!v) return;
-          const prev = knownTs['group'] || 0;
-          if (prev > 0 && v.ts > prev && v.senderId !== me.id && (!currentCh || currentCh.id !== 'group'))
-            unread['group'] = (unread['group']||0) + 1;
-          knownTs['group'] = v.ts;
-          lastMsgs['group'] = v;
-          renderHomeList();
-        });
-      }
-
-      setupDmListeners();
-      renderHomeList();
-    }
-
-    function setupDmListeners() {
-      if (!me) return;
-      Object.keys(members).forEach(mid => {
-        if (mid === me.id) return;
-        const dId = mkDmId(me.id, mid);
-        if (dmLsns[dId]) return;
-        const ref = fbDb.ref(`/channels/dm/${dId}/lastMsg`);
-        const fn = ref.on('value', snap => {
-          const v = snap.val(); if (!v) return;
-          const prev = knownTs[dId] || 0;
-          if (prev > 0 && v.ts > prev && v.senderId !== me.id && (!currentCh || currentCh.id !== dId))
-            unread[dId] = (unread[dId]||0) + 1;
-          knownTs[dId] = v.ts;
-          lastMsgs[dId] = v;
-          renderHomeList();
-        });
-        dmLsns[dId] = () => ref.off('value', fn);
-      });
-    }
-
-    function renderHomeList() {
-      const el = document.getElementById('home-list');
-      if (!el || !me) return;
-
-      const gLast = lastMsgs['group'], gUr = unread['group']||0;
-      const cnt = Object.keys(members).length;
-      const others = Object.entries(members)
-        .filter(([id]) => id !== me.id)
-        .sort((a,b) => (lastMsgs[mkDmId(me.id,b[0])]?.ts||0) - (lastMsgs[mkDmId(me.id,a[0])]?.ts||0));
-
-      let h = `
-        <div class="chat-row" onclick="openChat('group',null)">
-          <div class="av grp" style="width:46px;height:46px;font-size:24px">👨‍👩‍👧</div>
-          <div class="row-content">
-            <div class="row-top">
-              <span class="row-name">Family</span>
-              <span class="row-meta">${gLast ? fmtTime(gLast.ts) : ''}</span>
-            </div>
-            <div class="row-bot">
-              <span class="row-prev">${gLast ? previewStr(gLast) : `<span style="color:var(--tx-muted)">${cnt} member${cnt!==1?'s':''}</span>`}</span>
-              ${gUr>0 ? `<span class="badge">${gUr>99?'99+':gUr}</span>` : ''}
-            </div>
-          </div>
-        </div>`;
-
-      others.forEach(([mid,m]) => {
-        const dId = mkDmId(me.id,mid), last = lastMsgs[dId], ur = unread[dId]||0;
-        h += `
-          <div class="chat-row" onclick="openChat('dm','${mid}')">
-            ${avHtml(m.emoji, m.color)}
-            <div class="row-content">
-              <div class="row-top">
-                <span class="row-name">${esc(m.name)}</span>
-                <span class="row-meta">${last ? fmtTime(last.ts) : ''}</span>
-              </div>
-              <div class="row-bot">
-                <span class="row-prev">${last ? previewStr(last) : `<span style="color:var(--tx-muted)">No messages yet</span>`}</span>
-                ${ur>0 ? `<span class="badge">${ur>99?'99+':ur}</span>` : ''}
-              </div>
-            </div>
-          </div>`;
-      });
-
-      el.innerHTML = h;
-      updateBadge();
-    }
-
-    function updateBadge() {
-      if (!('setAppBadge' in navigator)) return;
-      const total = Object.values(unread).reduce((s,v) => s + (v||0), 0);
-      if (total > 0) navigator.setAppBadge(total).catch(()=>{});
-      else           navigator.clearAppBadge().catch(()=>{});
-    }
-
-    function previewStr(last) {
-      const sn = last.senderId===me.id ? 'You' : (members[last.senderId]?.name||'?');
-      const txt = last.type==='voice' ? '🎤 Voice message' : (last.text||'').slice(0,50);
-      return `<span class="prev-name">${esc(sn)}:</span> ${esc(txt)}`;
-    }
-
-    // ══════════════════════════════════════════════════════════════════
-    // SCREEN 4 — CHAT
-    // ══════════════════════════════════════════════════════════════════
-    function openChat(type, memberId) {
-      const chId = type==='group' ? 'group' : mkDmId(me.id, memberId);
-      currentCh = {type, id:chId, memberId};
-      unread[chId] = 0;
-      currentMsgs = [];
-      scrolledUp = false;
-      typingActive = {};
-
-      if (chatMsgOff) { chatMsgOff(); chatMsgOff = null; }
-      if (chatTypOff) { chatTypOff(); chatTypOff = null; }
-
-      showScreen('chat');
-      renderChatHeader();
-      renderMsgs();
-      initCompose();
-      initScrollTrack();
-
-      // Load IDB cache first for instant display
-      idbByIdx('messages','channelId',chId).then(cached => {
-        if (currentCh?.id !== chId) return;
-        currentMsgs = cached.sort((a,b)=>a.ts-b.ts).slice(-MAX_MSGS);
-        renderMsgs();
-        scrollToBottom(true);
-        attachMsgListener(chId, type);
-      }).catch(() => attachMsgListener(chId, type));
-
-      // Typing listener
-      const tRef = fbDb.ref(`/typing/${chId}`);
-      const tFn = tRef.on('value', snap => {
-        const d = snap.val()||{};
-        typingActive = {};
-        Object.entries(d).forEach(([mid,info]) => {
-          if (mid!==me.id && info.active && (Date.now()-info.ts)<5000) typingActive[mid]=true;
-        });
-        renderTypingBar();
-      });
-      chatTypOff = () => tRef.off('value', tFn);
-
-      renderHomeList();
-    }
-
-    function attachMsgListener(chId, type) {
-      const path = type==='group' ? '/channels/group/messages' : `/channels/dm/${chId}/messages`;
-      const ref = fbDb.ref(path).orderByChild('ts').limitToLast(MAX_MSGS);
-      const fn = ref.on('value', snap => {
-        if (currentCh?.id !== chId) return;
-        const data = snap.val()||{};
-        const msgs = Object.entries(data).map(([id,m])=>({id, channelId:chId, ...m})).sort((a,b)=>a.ts-b.ts);
-        const prevLast = currentMsgs.length ? currentMsgs[currentMsgs.length-1].ts : 0;
-        currentMsgs = msgs;
-        renderMsgs();
-        msgs.forEach(m => idbPut('messages',m).catch(()=>{}));
-        const newOthers = msgs.filter(m => m.ts>prevLast && m.senderId!==me.id);
-        const anyNew   = msgs.some(m => m.ts>prevLast);
-        if (prevLast===0) {
-          scrollToBottom(true);
-        } else if (anyNew) {
-          if (!scrolledUp) scrollToBottom(false);
-          else if (newOthers.length>0) showChip(newOthers.length);
-          newOthers.forEach(m => fireNotif(m, chId));
-        }
-      });
-      chatMsgOff = () => ref.off('value', fn);
-    }
-
-    function renderChatHeader() {
-      const el = document.getElementById('chat-hdr-info');
-      if (!el || !currentCh) return;
-      if (currentCh.type==='group') {
-        const cnt = Object.keys(members).length;
-        el.innerHTML = `
-          <div class="av grp" style="width:36px;height:36px;font-size:20px">👨‍👩‍👧</div>
-          <div>
-            <div class="chat-hdr-name">Family</div>
-            <div class="chat-hdr-sub">${cnt} member${cnt!==1?'s':''}</div>
-          </div>`;
-      } else {
-        const m = members[currentCh.memberId]||{name:'Unknown',emoji:'?',color:'#3b82f6'};
-        const isOn = m.lastSeen && (Date.now()-m.lastSeen<120000);
-        el.innerHTML = `
-          ${avHtml(m.emoji, m.color, 'sm')}
-          <div>
-            <div class="chat-hdr-name">${esc(m.name)}</div>
-            <div class="chat-hdr-sub">${isOn ? '<span class="online-dot"></span>Online' : `last seen ${m.lastSeen?fmtTime(m.lastSeen):'a while ago'}`}</div>
-          </div>`;
-      }
-    }
-
-    function renderMsgs() {
-      const el = document.getElementById('messages');
-      if (!el) return;
-      if (!currentMsgs.length) {
-        el.innerHTML = '<div class="empty-chat">No messages yet.<br>Say hello! 👋</div>';
-        return;
-      }
-      let h='', lastDate=null, lastSender=null, lastTs=null;
-      currentMsgs.forEach((msg,i) => {
-        const ds = localDateStr(new Date(msg.ts));
-        if (ds!==lastDate) {
-          h += `<div class="date-div"><span>${fmtDivider(msg.ts)}</span></div>`;
-          lastDate=ds; lastSender=null;
-        }
-        const own   = msg.senderId===me.id;
-        const sndr  = members[msg.senderId]||{name:'?',emoji:'❓',color:'#3b82f6'};
-        const showAv = !own && msg.senderId!==lastSender;
-        const next   = currentMsgs[i+1];
-        const isLast = !next || next.senderId!==msg.senderId;
-        const showTs = !lastTs || (msg.ts-lastTs)>10*60*1000 || isLast;
-        const rxHtml = buildRxns(msg.reactions||{}, msg.id);
-        const col    = own ? (me.color||sndr.color) : null;
-        const bubSt  = own ? `style="background:${col}"` : '';
-        if (own) {
-          h += `<div class="msg-row own">
-            <div class="msg-grp own">
-              <div class="bub own${isLast?' last':''}" ${bubSt}
-                   oncontextmenu="showPicker(event,'${msg.id}');return false"
-                   ontouchstart="tStart(event,'${msg.id}')" ontouchend="tEnd()"
-                   data-mid="${msg.id}">
-                ${msgContentHtml(msg)}
-              </div>
-              ${rxHtml}
-              ${showTs ? `<div class="msg-ts" style="align-self:flex-end">${fmtTime(msg.ts)}</div>` : ''}
-            </div>
-          </div>`;
-        } else {
-          h += `<div class="msg-row other">
-            ${showAv ? avHtml(sndr.emoji,sndr.color,'bub') : '<div class="av-spacer"></div>'}
-            <div class="msg-grp other">
-              ${showAv ? `<div class="sndr-name">${esc(sndr.name)}</div>` : ''}
-              <div class="bub other${isLast?' last':''}"
-                   oncontextmenu="showPicker(event,'${msg.id}');return false"
-                   ontouchstart="tStart(event,'${msg.id}')" ontouchend="tEnd()"
-                   data-mid="${msg.id}">
-                ${msgContentHtml(msg)}
-              </div>
-              ${rxHtml}
-              ${showTs ? `<div class="msg-ts" style="align-self:flex-start">${fmtTime(msg.ts)}</div>` : ''}
-            </div>
-          </div>`;
-        }
-        lastSender=msg.senderId; lastTs=msg.ts;
-      });
-      el.innerHTML = h;
-    }
-
-    function buildRxns(rxs, msgId) {
-      if (!rxs||!Object.keys(rxs).length) return '';
-      const grp={};
-      Object.entries(rxs).forEach(([mid,em]) => { (grp[em]||(grp[em]=[])).push(mid); });
-      const chips = Object.entries(grp).map(([em,mids]) => {
-        const mine = mids.includes(me.id);
-        return `<span class="rxn-chip${mine?' mine':''}" onclick="doRxn('${msgId}','${em}')">${em} ${mids.length}</span>`;
-      });
-      return `<div class="rxns">${chips.join('')}</div>`;
-    }
-
-    function renderTypingBar() {
-      const el = document.getElementById('typing-bar');
-      if (!el) return;
-      const active = Object.keys(typingActive).filter(k=>typingActive[k]);
-      if (!active.length) { el.style.display='none'; el.innerHTML=''; return; }
-      const names = active.map(mid=>members[mid]?.name||'Someone').join(', ');
-      el.style.display='flex';
-      el.innerHTML=`${esc(names)} is typing<span class="typing-dots"><span>.</span><span>.</span><span>.</span></span>`;
-    }
-
-    // ── Compose bar ────────────────────────────────────────────────
-    function initCompose() {
-      const ta  = document.getElementById('compose-ta');
-      const btn = document.getElementById('send-btn');
-      const bar = document.getElementById('compose-bar');
-      if (!ta||!btn||!bar) return;
-
-      ta.disabled = false; // always re-enable on chat open (guard vs connectivity watcher)
-
-      // Signature: personal glow from member's accent colour
-      if (me) bar.style.boxShadow = `inset 0 0 0 1.5px ${hexToRgba(me.color,.18)}`;
-
-      ta.value=''; ta.style.height='auto'; ta.focus();
-
-      ta.oninput = () => {
-        ta.style.height='auto';
-        ta.style.height=Math.min(ta.scrollHeight,96)+'px';
-        if (currentCh) {
-          fbDb.ref(`/typing/${currentCh.id}/${me.id}`).set({active:true,ts:Date.now()}).catch(()=>{});
-          clearTimeout(typingTimer);
-          typingTimer = setTimeout(()=>{ fbDb.ref(`/typing/${currentCh.id}/${me.id}`).set({active:false,ts:Date.now()}).catch(()=>{}); }, TYPING_MS);
-        }
-      };
-
-      ta.onkeydown = e => { if (e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMsg();} };
-      btn.onclick  = sendMsg;
-
-      const mic = document.getElementById('mic-btn');
-      if (mic) mic.onclick = startRecording;
-    }
-
-    async function sendMsg() {
-      const ta = document.getElementById('compose-ta');
-      if (!ta||!currentCh) return;
-      const text = ta.value.trim(); if (!text) return;
-      ta.value=''; ta.style.height='auto';
-      clearTimeout(typingTimer);
-      fbDb.ref(`/typing/${currentCh.id}/${me.id}`).set({active:false,ts:Date.now()}).catch(()=>{});
-      const id=uuid(), ts=Date.now();
-      const mPath = currentCh.type==='group' ? `/channels/group/messages/${id}` : `/channels/dm/${currentCh.id}/messages/${id}`;
-      const lPath = currentCh.type==='group' ? '/channels/group/lastMsg' : `/channels/dm/${currentCh.id}/lastMsg`;
-      try {
-        await fbDb.ref(mPath).set({senderId:me.id, text, ts, reactions:{}});
-        await fbDb.ref(lPath).set({text, senderId:me.id, ts});
-        scrollToBottom(false);
-      } catch(e) { ta.value=text; console.error('Send failed:',e); showToast('Not sent — check your connection'); }
-    }
-
-    // ── Voice messages ────────────────────────────────────────────
-    let mediaRecorder = null, recChunks = [], recTimerInt = null, recSeconds = 0;
-    const voiceCache = {}; // msgId → { data: base64, mimeType }
-
-    async function startRecording() {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        const mime = ['audio/webm;codecs=opus','audio/webm','audio/ogg;codecs=opus','audio/mp4']
-          .find(t => MediaRecorder.isTypeSupported(t)) || '';
-        mediaRecorder = new MediaRecorder(stream, mime ? { mimeType: mime } : {});
-        recChunks = [];
-        mediaRecorder.ondataavailable = e => { if (e.data.size > 0) recChunks.push(e.data); };
-        mediaRecorder.onstop = () => {
-          stream.getTracks().forEach(t => t.stop());
-          const blob = new Blob(recChunks, { type: mediaRecorder.mimeType || 'audio/webm' });
-          sendVoiceMsg(blob, recSeconds);
-        };
-        mediaRecorder.start(100);
-        document.getElementById('compose-normal').style.display = 'none';
-        document.getElementById('compose-rec').style.display = 'flex';
-        recSeconds = 0;
-        document.getElementById('rec-timer').textContent = '0:00';
-        recTimerInt = setInterval(() => {
-          recSeconds++;
-          const m = Math.floor(recSeconds/60), s = String(recSeconds%60).padStart(2,'0');
-          document.getElementById('rec-timer').textContent = `${m}:${s}`;
-          if (recSeconds >= 60) stopRecording();
-        }, 1000);
-      } catch(e) {
-        showToast('Microphone not available — check permissions');
-      }
-    }
-
-    function stopRecording() {
-      clearInterval(recTimerInt);
-      document.getElementById('compose-normal').style.display = 'flex';
-      document.getElementById('compose-rec').style.display = 'none';
-      if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
-    }
-
-    function cancelRecording() {
-      clearInterval(recTimerInt);
-      if (mediaRecorder) {
-        mediaRecorder.onstop = null;
-        if (mediaRecorder.state !== 'inactive') mediaRecorder.stop();
-        mediaRecorder = null;
-      }
-      recChunks = [];
-      document.getElementById('compose-normal').style.display = 'flex';
-      document.getElementById('compose-rec').style.display = 'none';
-    }
-
-    async function sendVoiceMsg(blob, duration) {
-      if (!currentCh || !blob.size) return;
-      showToast('Sending voice message…');
-      try {
-        // Convert blob → base64 and store directly in RTDB (free plan compatible)
-        const base64 = await new Promise((res, rej) => {
-          const r = new FileReader();
-          r.onload = e => res(e.target.result.split(',')[1]);
-          r.onerror = rej;
-          r.readAsDataURL(blob);
-        });
-        const id    = uuid();
-        const mPath = currentCh.type==='group'
-          ? `/channels/group/messages/${id}`
-          : `/channels/dm/${currentCh.id}/messages/${id}`;
-        const lPath = currentCh.type==='group'
-          ? '/channels/group/lastMsg'
-          : `/channels/dm/${currentCh.id}/lastMsg`;
-        await fbDb.ref(mPath).set({
-          id, senderId:me.id, type:'voice',
-          audioData:base64, mimeType:blob.type||'audio/webm',
-          duration, ts:Date.now()
-        });
-        await fbDb.ref(lPath).set({ text:'🎤 Voice message', senderId:me.id, ts:Date.now() });
-        scrollToBottom(false);
-      } catch(e) {
-        console.error('Voice send failed:', e);
-        showToast('Failed to send — try a shorter recording');
-      }
-    }
-
-    function msgContentHtml(msg) {
-      if (msg.type === 'voice') {
-        // Cache audio data by msgId so playVoice can find it
-        if (msg.audioData) voiceCache[msg.id] = { data:msg.audioData, mimeType:msg.mimeType||'audio/webm' };
-        const dur  = fmtVoiceDur(msg.duration || 0);
-        const bars = [38,72,52,85,42,68,55,78,45].map(h =>
-          `<div class="vbar" style="height:${h}%"></div>`).join('');
-        return `<div class="voice-bub">
-          <button class="voice-play" onclick="playVoice(this,'${msg.id}')">▶</button>
-          <div class="voice-wave">${bars}</div>
-          <span class="voice-dur">${dur}</span>
-        </div>`;
-      }
-      return esc(msg.text||'').replace(/\n/g,'<br>');
-    }
-
-    function fmtVoiceDur(s) {
-      return `${Math.floor(s/60)}:${String(Math.round(s)%60).padStart(2,'0')}`;
-    }
-
-    let _activeAudio = null, _activeBtn = null;
-
-    function playVoice(btn, msgId) {
-      const cached = voiceCache[msgId];
-      if (!cached) { showToast('Audio not loaded yet — try again'); return; }
-      // Pause anything already playing
-      if (_activeAudio && !_activeAudio.paused) {
-        _activeAudio.pause();
-        if (_activeBtn) { _activeBtn.textContent='▶'; setVbarActive(_activeBtn,false); }
-        if (_activeBtn === btn) { _activeAudio=null; _activeBtn=null; return; }
-      }
-      if (!btn._audio) {
-        btn._audio = new Audio(`data:${cached.mimeType};base64,${cached.data}`);
-        btn._audio.onended = () => { btn.textContent='▶'; setVbarActive(btn,false); _activeAudio=null; _activeBtn=null; };
-        btn._audio.onerror = () => { showToast('Could not play audio'); btn.textContent='▶'; };
-      }
-      btn._audio.play()
-        .then(() => { btn.textContent='⏸'; setVbarActive(btn,true); _activeAudio=btn._audio; _activeBtn=btn; })
-        .catch(() => showToast('Tap anywhere first to enable audio'));
-    }
-
-    function setVbarActive(btn, on) {
-      btn.closest('.voice-bub')?.querySelectorAll('.vbar')
-        .forEach(b => b.classList.toggle('active', on));
-    }
-
-    // ── Scroll ─────────────────────────────────────────────────────
-    function initScrollTrack() {
-      const el = document.getElementById('messages');
-      if (!el) return;
-      el.onscroll = () => {
-        scrolledUp = (el.scrollHeight - el.scrollTop - el.clientHeight) > 200;
-        if (!scrolledUp) hideChip();
-      };
-    }
-
-    function scrollToBottom(instant) {
-      const el = document.getElementById('messages');
-      if (!el) return;
-      scrolledUp=false; hideChip();
-      if (instant) el.scrollTop=el.scrollHeight;
-      else el.scrollTo({top:el.scrollHeight, behavior:'smooth'});
-    }
-
-    function showChip(n) {
-      const c=document.getElementById('new-chip');
-      if (c){c.style.display='block'; c.textContent=`↓ ${n} new message${n>1?'s':''}`;}
-    }
-    function hideChip() {
-      const c=document.getElementById('new-chip'); if(c)c.style.display='none';
-    }
-
-    function goBack() {
-      if (chatMsgOff){chatMsgOff();chatMsgOff=null;}
-      if (chatTypOff){chatTypOff();chatTypOff=null;}
-      clearTimeout(typingTimer);
-      if (currentCh) fbDb.ref(`/typing/${currentCh.id}/${me.id}`).set({active:false,ts:Date.now()}).catch(()=>{});
-      currentCh=null;
-      showScreen('home');
-      renderHomeList();
-    }
-
-    // ── Reactions ──────────────────────────────────────────────────
-    let tpTimer=null;
-    function tStart(e,msgId) {
-      const x=e.touches?.[0]?.clientX||0, y=e.touches?.[0]?.clientY||0;
-      tpTimer=setTimeout(()=>_picker(x,y,msgId),500);
-    }
-    function tEnd() { clearTimeout(tpTimer); }
-
-    function showPicker(e,msgId) {
-      e.preventDefault();
-      _picker(e.clientX,e.clientY,msgId);
-    }
-
-    function _picker(x,y,msgId) {
-      document.getElementById('rxn-picker')?.remove();
-      const p=document.createElement('div'); p.id='rxn-picker'; p.className='rxn-picker';
-      RXN_EMOJIS.forEach(em=>{
-        const b=document.createElement('button'); b.className='rxn-btn'; b.textContent=em;
-        b.onclick=()=>{ doRxn(msgId,em); p.remove(); };
-        p.appendChild(b);
-      });
-      document.body.appendChild(p);
-      requestAnimationFrame(()=>{
-        const pw=p.offsetWidth||286;
-        p.style.left=Math.max(8,Math.min(x-pw/2,window.innerWidth-pw-8))+'px';
-        p.style.top=Math.max(8,y-64)+'px';
-      });
-      setTimeout(()=>document.addEventListener('click',()=>p.remove(),{once:true}),60);
-    }
-
-    async function doRxn(msgId,emoji) {
-      if (!currentCh) return;
-      const path = currentCh.type==='group'
-        ? `/channels/group/messages/${msgId}/reactions/${me.id}`
-        : `/channels/dm/${currentCh.id}/messages/${msgId}/reactions/${me.id}`;
-      const msg = currentMsgs.find(m=>m.id===msgId);
-      if (msg?.reactions?.[me.id]===emoji) await fbDb.ref(path).remove();
-      else await fbDb.ref(path).set(emoji);
-    }
-
-    // ── Notifications ──────────────────────────────────────────────
-    function fireNotif(msg, chId) {
-      if (document.visibilityState==='visible') return;
-      if (Notification.permission!=='granted') return;
-      const sndr = members[msg.senderId]||{name:'Someone'};
-      const title = currentCh?.type==='group' ? `Family · ${sndr.name}` : sndr.name;
-      const body  = msg.type==='voice' ? '🎤 Voice message' : (msg.text||'').slice(0,80);
-      const n = new Notification(title, { body, icon:'./icon-192.png' });
-      n.onclick = () => { window.focus(); };
-      updateBadge();
-    }
-
-    // ══════════════════════════════════════════════════════════════════
-    // SCREEN 5 — SETTINGS
-    // ══════════════════════════════════════════════════════════════════
-    function initSettingsScreen() {
-      const nameIn = document.getElementById('s-name');
-      nameIn.value = me.name;
-      let selEmoji=me.emoji, selColor=me.color;
-
-      // Theme picker
-      const themeRow = document.getElementById('s-themes');
-      const curTheme = localStorage.getItem('fc_theme') || 'ocean';
-      themeRow.innerHTML = Object.entries(THEMES).map(([key, t]) => {
-        const active = key === curTheme ? 'active' : '';
-        // Gradient dot showing the theme's surface→raised colors
-        const dot = `background:linear-gradient(135deg,${t.surface} 0%,${t.raised} 55%,${t.border} 100%)`;
-        return `<div class="theme-sw ${active}" onclick="applyTheme('${key}');
-          document.querySelectorAll('.theme-sw').forEach(x=>x.classList.remove('active'));
-          this.classList.add('active');">
-          <div class="theme-sw-dot" style="${dot}"></div>
-          <div class="theme-sw-label">${t.label}</div>
-        </div>`;
-      }).join('');
-
-      buildPicker(
-        document.getElementById('s-emoji'),
-        document.getElementById('s-color'),
-        me.emoji, me.color,
-        e  => { selEmoji=e;  },
-        cl => { selColor=cl; }
-      );
-
-      document.getElementById('s-back').onclick = () => showScreen('home');
-
-      document.getElementById('s-save').onclick = async () => {
-        const n = nameIn.value.trim().slice(0,20); if (!n) return;
-        me.name=n; me.emoji=selEmoji; me.color=selColor;
-        localStorage.setItem('fc_me', JSON.stringify(me));
-        await fbDb.ref(`/members/${me.id}`).update({name:me.name, emoji:me.emoji, color:me.color});
-        showScreen('home'); renderHomeList();
-      };
-
-      document.getElementById('s-clear').onclick = async () => {
-        if (!confirm('Clear local cache? Messages re-sync from Firebase next time you open a chat.')) return;
-        await idbClear('messages');
-        alert('Cache cleared.');
-      };
-
-      document.getElementById('s-reset').onclick = () => {
-        if (!confirm('Reset app? All local data will be cleared and you\'ll return to setup.')) return;
-        localStorage.clear();
-        indexedDB.deleteDatabase(DB_NAME);
-        location.reload();
-      };
-
-      // Studio button
-      document.getElementById('s-open-studio').onclick = () => openStudio();
-
-      // Saved backgrounds gallery
-      const gallery = document.getElementById('s-bg-gallery');
-      const rmBtn   = document.getElementById('s-rm-bg');
-      const saved   = [];
-      for (let i=0; i<localStorage.length; i++) {
-        const k=localStorage.key(i);
-        if (k&&k.startsWith('fc_bg_')) saved.push({ name:k.slice(6), key:k });
-      }
-      if (saved.length) {
-        gallery.innerHTML = saved.map(bg=>`
-          <div class="bg-thumb-row" data-bgname="${esc(bg.name)}">
-            <img class="bg-thumb" src="${localStorage.getItem(bg.key)||''}">
-            <span class="bg-thumb-name">${esc(bg.name)}</span>
-            <button class="btn-apply _bga">Apply</button>
-            <button class="btn-del _bgd">✕</button>
-          </div>`).join('');
-        gallery.querySelectorAll('._bga').forEach(btn=>{
-          const name=btn.closest('[data-bgname]').dataset.bgname;
-          btn.onclick=()=>{ const d=localStorage.getItem(`fc_bg_${name}`); if(d){applyCustomBg(d);showToast(`"${name}" applied!`);} };
-        });
-        gallery.querySelectorAll('._bgd').forEach(btn=>{
-          const row=btn.closest('[data-bgname]');
-          btn.onclick=()=>{ deleteSavedBg(row.dataset.bgname,row); };
-        });
-      } else {
-        gallery.innerHTML='<div style="font-size:13px;color:var(--tx-muted)">No saved backgrounds yet</div>';
-      }
-      if (localStorage.getItem('fc_active_bg')) rmBtn.style.display='block';
-      rmBtn.onclick=removeCustomBg;
-
-      renderSettingsMembers();
-    }
-
-    function renderSettingsMembers() {
-      const el = document.getElementById('s-members');
-      if (!el||!me) return;
-      el.innerHTML = Object.entries(members).map(([id,m]) => {
-        const isSelf = id===me.id;
-        return `<div class="member-row" style="justify-content:space-between">
-          <div style="display:flex;align-items:center;gap:10px;min-width:0">
-            ${avHtml(m.emoji, m.color, 'sm')}
-            <div>
-              <div class="member-name">${esc(m.name)}${isSelf?' <span class="you-tag">(you)</span>':''}</div>
-              <div class="member-last">last seen ${m.lastSeen?fmtTime(m.lastSeen):'unknown'}</div>
-            </div>
-          </div>
-          ${!isSelf ? `<button onclick="removeMember('${id}','${esc(m.name)}')"
-            style="flex-shrink:0;background:transparent;border:1px solid var(--border);color:var(--tx-muted);
-                   border-radius:6px;padding:4px 10px;font-size:12px;cursor:pointer">Remove</button>` : ''}
-        </div>`;
-      }).join('');
-    }
-
-    async function removeMember(uid, name) {
-      if (!confirm(`Remove "${name}" from FamChat?\n\nTheir profile will be deleted. Messages they sent will remain.`)) return;
-      try {
-        await fbDb.ref(`/members/${uid}`).remove();
-        delete members[uid];
-        showToast(`"${name}" removed`);
-        renderSettingsMembers();
-        renderHomeList();
-      } catch(e) { showToast('Could not remove — check connection'); }
-    }
-
-    // ══════════════════════════════════════════════════════════════════
-    // INIT
-    // ══════════════════════════════════════════════════════════════════
-    async function init() {
-      applyTheme(localStorage.getItem('fc_theme') || 'ocean');
-      const _cbg = localStorage.getItem('fc_active_bg');
-      if (_cbg) applyCustomBg(_cbg);
-      try { await openDb(); pruneOld(); } catch(e) { console.warn('IDB open failed:', e); }
-
-      const cfgStr = localStorage.getItem('fc_firebase');
-      const meStr  = localStorage.getItem('fc_me');
-
-      if (!cfgStr) { initFirebaseScreen(); return; }
-
-      try {
-        await initFb(JSON.parse(cfgStr));
-      } catch(e) {
-        localStorage.removeItem('fc_firebase');
-        initFirebaseScreen(); return;
-      }
-
-      if (!meStr) { initProfileScreen(); return; }
-
-      try { me = JSON.parse(meStr); }
-      catch(e) { localStorage.removeItem('fc_me'); initProfileScreen(); return; }
-
-      enterApp();
-    }
-
-    init();
-  </script>
-
-  <!-- ═══════════════════════════════════════════════════════
-       SCREEN 6 · Background Studio
-  ═══════════════════════════════════════════════════════ -->
-  <div id="s-studio" class="screen">
-    <div class="studio-hdr">
-      <button onclick="closeStudio()" style="background:transparent;border:none;color:#fff;font-size:24px;cursor:pointer;line-height:1;padding:0 4px;">←</button>
-      <input id="studio-name" type="text" class="studio-name-in" placeholder="Name your background…" maxlength="30">
-      <button onclick="saveBackground()" class="studio-save-btn">Save ✓</button>
+      resolve();
+    };
+    req.onerror=resolve;
+  });
+}
+
+function resetGame(){
+  if(!confirm('Start a new game? Your current progress will be lost.'))return;
+  gs.money=0;gs.total=0;gs.owned={};gs.bought=new Set();
+  gs.clickMulti=1;gs.cpsMulti=1;gs.lastMs=-1;
+  gs.playTime=0;gs.highCps=0;gs.savedAt=null;
+  saveGame();
+  renderList();
+  renderUI();
+}
+
+// ── Offline earnings ─────────────────────────────────────────────────────────
+function calcOfflineEarnings(savedIso){
+  if(!savedIso)return 0;
+  const seconds=Math.min((Date.now()-new Date(savedIso))/1000,7200); // max 2h
+  return calcCps()*seconds;
+}
+
+// ── Game actions ─────────────────────────────────────────────────────────────
+function brewKopi(e){
+  e.preventDefault();
+  const v=clickVal();
+  gs.money+=v;gs.total+=v;
+  const btn=document.getElementById('cup-btn');
+  const rect=btn.getBoundingClientRect();
+  const cx=e.touches?e.touches[0].clientX:e.clientX;
+  const cy=e.touches?e.touches[0].clientY:e.clientY;
+  const el=document.createElement('div');
+  el.className='float-txt';
+  el.style.left=(cx-rect.left-20)+'px';
+  el.style.top =(cy-rect.top-10)+'px';
+  el.textContent='+$'+fmt(v);
+  document.getElementById('floats').appendChild(el);
+  setTimeout(()=>{try{el.parentNode&&el.parentNode.removeChild(el);}catch(ex){}},920);
+  renderUI();
+}
+
+function buyItem(itemId){
+  const item=ITEMS.find(it=>it.id===itemId);
+  if(!item)return;
+  const cost=costFor(item);
+  if(gs.money<cost)return;
+  gs.money-=cost;
+  gs.owned[itemId]=(gs.owned[itemId]||0)+1;
+  renderList();
+  renderUI();
+}
+
+function buyUpgrade(upgId){
+  const upg=UPGRADES.find(u=>u.id===upgId);
+  if(!upg||gs.bought.has(upgId)||gs.money<upg.cost)return;
+  gs.money-=upg.cost;
+  gs.bought.add(upgId);
+  gs.clickMulti*=upg.cm;
+  gs.cpsMulti  *=upg.pm;
+  renderList();
+  renderUI();
+}
+
+function switchTab(name){
+  gs.tab=name;
+  document.querySelectorAll('.tab-btn').forEach(b=>{
+    b.classList.toggle('active',b.dataset.tab===name);
+  });
+  renderList();
+}
+
+// ── Toast system ─────────────────────────────────────────────────────────────
+let msTimeout=null;
+
+function showToast(toastId,emoji,msg){
+  const el=document.getElementById(toastId);
+  el.innerHTML=`<span style="font-size:20px;">${emoji}</span><span style="margin-left:8px;">${msg}</span>`;
+  el.style.animation='none';
+  void el.offsetWidth;
+  el.classList.add('show');
+  el.style.animation='';
+  if(msTimeout)clearTimeout(msTimeout);
+  msTimeout=setTimeout(()=>el.classList.remove('show'),3700);
+}
+
+function checkMilestone(){
+  const idx=MILESTONES.reduce((b,m,i)=>gs.total>=m.at?i:b,-1);
+  if(idx>gs.lastMs){
+    gs.lastMs=idx;
+    showToast('ms-toast',MILESTONES[idx].emoji,MILESTONES[idx].msg);
+  }
+}
+
+// ── Render ───────────────────────────────────────────────────────────────────
+function renderUI(){
+  const cps=calcCps();
+  const cv =clickVal();
+  const tot=totalOwned();
+  if(cps>gs.highCps)gs.highCps=cps;
+  document.getElementById('money-display').textContent='$'+fmt(gs.money);
+  document.getElementById('cps-display').textContent  ='$'+fmt(cps)+'/sec';
+  const cvEl=document.getElementById('click-val');
+  if(rushOn){
+    cvEl.textContent='⚡ +$'+fmt(cv)+' per tap  (10× RUSH!)';
+    cvEl.className='rush';
+  }else{
+    cvEl.textContent='+$'+fmt(cv)+' per tap';
+    cvEl.className='';
+  }
+  document.getElementById('chip-items').textContent='🏪 '+tot+' item'+(tot===1?'':'s');
+  document.getElementById('chip-total').textContent='💰 $'+fmt(gs.total)+' earned';
+}
+
+function renderList(){
+  const list=document.getElementById('list');
+  if(gs.tab==='items'){
+    list.innerHTML=ITEMS.map(item=>{
+      const cnt  =gs.owned[item.id]||0;
+      const cost =costFor(item);
+      const can  =gs.money>=cost;
+      const prod =cnt>0?fmt(item.baseCps*cnt*gs.cpsMulti)+'/s total':fmt(item.baseCps)+'/s ea';
+      const desc =item.desc+' · '+prod;
+      return `<div class="item-card${can?'':(cnt>0?' owned dim':' dim')}${cnt>0&&can?' owned':''}"
+        onclick="${can?`buyItem('${item.id}')`:''}" >
+        <div class="card-emoji">${item.emoji}</div>
+        <div class="card-mid">
+          <div class="card-name">${item.name}</div>
+          <div class="card-desc">${desc}</div>
+        </div>
+        <div class="card-right">
+          <div class="card-cost ${can?'can':'cant'}">$${fmt(cost)}</div>
+          ${cnt>0?`<div class="card-count">×${cnt}</div>`:''}
+        </div>
+      </div>`;
+    }).join('');
+
+  }else if(gs.tab==='upgrades'){
+    list.innerHTML=UPGRADES.map(upg=>{
+      const bought=gs.bought.has(upg.id);
+      const can   =!bought&&gs.money>=upg.cost;
+      return `<div class="item-card${(bought||!can)?' dim':''}"
+        onclick="${can?`buyUpgrade('${upg.id}')`:''}" >
+        <div class="card-emoji">${bought?'✅':upg.emoji}</div>
+        <div class="card-mid">
+          <div class="card-name">${upg.name}</div>
+          <div class="card-desc">${upg.desc}</div>
+        </div>
+        <div class="card-right">
+          ${bought
+            ?'<div style="font-size:11px;color:#5a4030;">OWNED</div>'
+            :`<div class="card-cost ${can?'can':'cant'}">$${fmt(upg.cost)}</div>`}
+        </div>
+      </div>`;
+    }).join('');
+
+  }else if(gs.tab==='stats'){
+    renderStats();
+  }else{
+    renderSettings();
+  }
+}
+
+function renderStats(){
+  const cps=calcCps();
+  document.getElementById('list').innerHTML=`
+    <div class="stats-grid">
+      <div class="stat-box"><div class="sl">Total earned</div><div class="sv">$${fmt(gs.total)}</div></div>
+      <div class="stat-box"><div class="sl">Per second</div><div class="sv">$${fmt(cps)}/s</div></div>
+      <div class="stat-box"><div class="sl">Items owned</div><div class="sv">${totalOwned()}</div></div>
+      <div class="stat-box"><div class="sl">Upgrades</div><div class="sv">${gs.bought.size}/${UPGRADES.length}</div></div>
+      <div class="stat-box"><div class="sl">Best CPS ever</div><div class="sv">$${fmt(gs.highCps)}/s</div></div>
+      <div class="stat-box"><div class="sl">Play time</div><div class="sv">${fmtTime(gs.playTime)}</div></div>
     </div>
-    <canvas id="draw-canvas"></canvas>
-    <div class="studio-bar">
-      <div class="studio-color-row">
-        <div id="studio-sw" class="studio-swatch-main" style="background:#3b82f6"></div>
-        <input id="hex-in" class="studio-hex" maxlength="7" value="#3b82f6" placeholder="#rrggbb">
-        <div class="ps" style="background:#ef4444" onclick="pickColor('#ef4444')"></div>
-        <div class="ps" style="background:#f97316" onclick="pickColor('#f97316')"></div>
-        <div class="ps" style="background:#eab308" onclick="pickColor('#eab308')"></div>
-        <div class="ps" style="background:#22c55e" onclick="pickColor('#22c55e')"></div>
-        <div class="ps" style="background:#3b82f6" onclick="pickColor('#3b82f6')"></div>
-        <div class="ps" style="background:#a855f7" onclick="pickColor('#a855f7')"></div>
-        <div class="ps" style="background:#ec4899" onclick="pickColor('#ec4899')"></div>
-        <div class="ps" style="background:#ffffff;border-color:rgba(255,255,255,.6)" onclick="pickColor('#ffffff')"></div>
-        <div class="ps" style="background:#111111" onclick="pickColor('#111111')"></div>
+    <div class="save-row">
+      <div>
+        <div class="save-lbl">Auto-saves every 10 seconds</div>
+        <div id="save-time">${fmtSaved(gs.savedAt)}</div>
       </div>
-      <div class="studio-tools">
-        <button id="tb-pen"  class="tb on" onclick="setTool('pen')">✏️</button>
-        <button id="tb-rect" class="tb" onclick="setTool('rect')">▭</button>
-        <button id="tb-circ" class="tb" onclick="setTool('circ')">⬤</button>
-        <button id="tb-poly" class="tb" onclick="setTool('poly')">⬡</button>
-        <button id="tb-era"  class="tb" onclick="setTool('era')">⬜</button>
-        <div class="sdiv"></div>
-        <button id="tb-fill" class="tb" onclick="toggleFill()" title="Fill shapes">▣</button>
-        <div class="sdiv"></div>
-        <button class="sz on" id="sz-s" onclick="setSz(2,this)">─</button>
-        <button class="sz" id="sz-m" onclick="setSz(5,this)" style="font-size:18px">─</button>
-        <button class="sz" id="sz-l" onclick="setSz(12,this)" style="font-size:26px">─</button>
-        <div style="flex:1"></div>
-        <button class="tb" onclick="undoDraw()" title="Undo">↩</button>
-        <button class="tb" onclick="clearCanvas()" title="Clear">🗑</button>
-      </div>
-      <div id="poly-tip" class="poly-tip" style="display:none">Tap to add points · Double-tap to close</div>
+      <button class="reset-btn" onclick="resetGame()">New Game</button>
     </div>
-  </div>
+    <div class="stats-tip">
+      Tip: the Michelin Star upgrade (⬆️ tab) multiplies everything ×5. Save up and go for it! 🌟
+    </div>
+    <button class="replay-btn" onclick="openOnboard()">🎬 Replay intro</button>
+    <a href="https://ko-fi.com/leanlifestyle" target="_blank" rel="noopener"
+       style="display:flex;align-items:center;justify-content:center;gap:8px;
+              margin-top:8px;padding:11px 16px;border-radius:8px;
+              background:#1a0a04;border:1px solid #7c3a00;
+              color:#fbbf24;font-size:13px;font-weight:600;
+              text-decoration:none;transition:background .15s;"
+       onmouseover="this.style.background='#2d1a08'"
+       onmouseout ="this.style.background='#1a0a04'">
+      <span style="font-size:18px;">☕</span>
+      <span>Buy me a kopi on Ko-fi</span>
+    </a>`;
+}
 
+function renderSettings(){
+  document.getElementById('list').innerHTML=`
+    <div class="how-section">
+      <div class="how-head">📖 How to Play</div>
+      <div class="how-row"><div class="hw-ic">☕</div><div class="hw-tx"><b>Tap the cup</b> to earn money. Tap power grows as you buy upgrades.</div></div>
+      <div class="how-row"><div class="hw-ic">🍽️</div><div class="hw-tx"><b>Buy Menu items</b> (Menu tab) to earn $/sec passively — income flows even when you stop tapping.</div></div>
+      <div class="how-row"><div class="hw-ic">⬆️</div><div class="hw-tx"><b>Buy Upgrades</b> to multiply both tap power and $/sec. Stack them — effects are multiplicative.</div></div>
+      <div class="how-row"><div class="hw-ic">⚡</div><div class="hw-tx"><b>Rush Hour</b> triggers every few minutes. Your tap earns <b>10× more for 30 seconds</b> — tap as fast as you can!</div></div>
+      <div class="how-row"><div class="hw-ic">💾</div><div class="hw-tx"><b>Auto-saves</b> every 10 seconds. Come back later — you earn passively while away (up to 2h).</div></div>
+    </div>
+    <div class="how-section">
+      <div class="how-head">💡 Strategy Tips</div>
+      <div class="how-row"><div class="hw-ic">1️⃣</div><div class="hw-tx">Buy 10–15 Kopi O first to build a passive income base. Cheap items fund expensive ones fast.</div></div>
+      <div class="how-row"><div class="hw-ic">2️⃣</div><div class="hw-tx">Grab <b>Better Ladle</b> and <b>Regular Customers</b> early — the biggest bang for your early dollars.</div></div>
+      <div class="how-row"><div class="hw-ic">3️⃣</div><div class="hw-tx">Tap hard during <b>Rush Hour</b>. A 30-second burst at 10× can earn more than minutes of idle income.</div></div>
+      <div class="how-row"><div class="hw-ic">🏆</div><div class="hw-tx">Goal: unlock <b>Mao Shan Wang</b> + all 7 upgrades, especially the <b>Michelin Star</b> (×5 everything)!</div></div>
+    </div>
+    <div class="how-section">
+      <div class="how-head">⚙️ Options</div>
+      <button class="set-btn" style="margin-bottom:8px;" onclick="openOnboard()">🎬 &nbsp;Replay intro story</button>
+      <button class="set-btn danger" onclick="resetGame()">🔄 &nbsp;Start new game</button>
+    </div>`;
+}
+
+// ── Rush Hour ─────────────────────────────────────────────────────────────────
+let rushOn=false,rushSecs=0,rushTimer=null;
+
+function startRush(){
+  if(rushOn)return;
+  rushOn=true;rushSecs=30;
+  document.getElementById('cup-btn').classList.add('rush');
+  const hint=document.getElementById('tap-hint');
+  if(hint){hint.textContent='⚡ RUSH HOUR! 30s!';hint.className='tap-hint rush';}
+  showToast('ms-toast','⚡','RUSH HOUR! Tap 10× faster — 30 seconds!');
+  rushTimer=setInterval(()=>{
+    rushSecs--;
+    const hint=document.getElementById('tap-hint');
+    if(hint&&rushOn)hint.textContent='⚡ RUSH HOUR! '+rushSecs+'s!';
+    if(rushSecs<=0){endRush();}
+  },1000);
+}
+
+function endRush(){
+  clearInterval(rushTimer);
+  rushOn=false;
+  document.getElementById('cup-btn').classList.remove('rush');
+  const hint=document.getElementById('tap-hint');
+  if(hint){hint.textContent='TAP TO BREW!';hint.className='tap-hint';}
+  showToast('ms-toast','😮','Rush hour over! Phew, good work uncle!');
+  scheduleRush();
+}
+
+function scheduleRush(){
+  // First event 3–5 minutes after game opens; subsequent events the same
+  const delay=(180+Math.random()*120)*1000;
+  setTimeout(startRush,delay);
+}
+let ticks=0;
+function tick(){
+  const earn=calcCps()/20;  // 50ms tick = 1/20 second
+  gs.money+=earn;
+  gs.total+=earn;
+  ticks++;
+  if(ticks%20===0)  gs.playTime++;         // every second
+  if(ticks%200===0) saveGame();            // every 10 seconds
+  if(ticks%4===0){                         // ~80ms render cadence
+    renderUI();
+    checkMilestone();
+    if(gs.tab==='stats')renderStats();
+    // settings is static — no live re-render needed
+  }
+}
+
+// ── Connectivity ─────────────────────────────────────────────────────────────
+window.addEventListener('online', ()=>{
+  document.getElementById('offline-banner').style.display='none';
+});
+window.addEventListener('offline',()=>{
+  document.getElementById('offline-banner').style.display='block';
+});
+
+// ── Init ─────────────────────────────────────────────────────────────────────
+async function init(){
+  try{
+    await initDB();
+    await loadGame();
+  }catch(e){
+    // IDB unavailable — continue without save (private browsing etc.)
+  }
+
+  // Offline earnings
+  const oe=calcOfflineEarnings(gs.savedAt);
+  if(oe>10){
+    gs.money+=oe;
+    gs.total+=oe;
+    setTimeout(()=>{
+      showToast('oe-toast','💰','Welcome back! Earned $'+fmt(oe)+' while away');
+    },600);
+  }
+
+  // Attach click + touch events to cup
+  const cup=document.getElementById('cup-btn');
+  cup.addEventListener('click',brewKopi);
+  // touchstart for snappier mobile response
+  cup.addEventListener('touchstart',brewKopi,{passive:false});
+
+  renderUI();
+  renderList();
+  setInterval(tick,50);
+  scheduleRush(); // first Rush Hour event fires 3–5 min after load
+
+  // Show onboarding on first visit (M12: show once, localStorage flag)
+  if(!localStorage.getItem(OB_KEY)){
+    buildOnboarding();
+    document.getElementById('onboard').style.display='flex';
+  }
+}
+
+init();
+</script>
 </body>
+</html>
