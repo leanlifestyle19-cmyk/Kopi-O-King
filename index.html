@@ -6,955 +6,1066 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Kopi O King">
-<meta name="theme-color" content="#1c0e04">
+<meta name="apple-mobile-web-app-title" content="Kopi O Tycoon">
+<meta name="theme-color" content="#0f0800">
 <link rel="manifest" href="./manifest.json">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='15' fill='%23f59e0b'/><text x='50' y='74' font-size='62' text-anchor='middle'>%E2%98%95</text></svg>">
-<title>Kopi O King</title>
+<title>Kopi O King Tycoon</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 html,body{height:100%;overflow:hidden;}
 body{
   height:100vh;height:100dvh;
   display:flex;flex-direction:column;
-  background:#1c0e04;color:#fef3c7;
+  background:#0f0800;color:#fef3c7;
   font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;
-  user-select:none;overflow:hidden;
+  user-select:none;
 }
 :root{
-  --bg:#1c0e04;--surf:#2d1a08;--card:#3e2510;--card-owned:#3a2010;
-  --border:#4a2e0e;--border-owned:#6b3a12;
-  --amber:#f59e0b;--green:#22c55e;--muted:#9c7a4a;--text:#fef3c7;
-}
-
-/* ── Offline banner ── */
-#offline-banner{
-  display:none;background:#7f1d1d;color:#fca5a5;
-  font-size:11px;text-align:center;padding:3px 8px;flex-shrink:0;
+  --bg:#0f0800;--surf:#1a0e04;--card:#2d1a08;--border:#4a2e0e;
+  --amber:#f59e0b;--green:#22c55e;--red:#ef4444;--text:#fef3c7;--muted:#9c7a4a;
 }
 
 /* ── Header ── */
-#header{
-  flex-shrink:0;background:var(--surf);
-  padding:10px 16px;display:flex;justify-content:space-between;align-items:center;
+#gfx-header{
+  flex-shrink:0;background:var(--surf);padding:10px 14px;
+  display:flex;justify-content:space-between;align-items:center;
   border-bottom:2px solid var(--amber);
 }
-#header .title{font-size:18px;font-weight:700;color:var(--amber);letter-spacing:-.3px;}
-#header .sub  {font-size:11px;color:var(--muted);margin-top:2px;}
-#money-display{font-size:28px;font-weight:800;color:var(--green);line-height:1;font-variant-numeric:tabular-nums;}
-#cps-display  {font-size:12px;color:var(--muted);margin-top:3px;text-align:right;}
+.gh-left .title{font-size:15px;font-weight:800;color:var(--amber);}
+.gh-left .daytag{font-size:11px;color:var(--muted);margin-top:1px;letter-spacing:.5px;}
+.gh-right{text-align:right;}
+#cash-display{font-size:26px;font-weight:800;line-height:1;font-variant-numeric:tabular-nums;}
+#profit-display{font-size:11px;color:var(--muted);margin-top:2px;}
+.pos{color:var(--green);}
+.neg{color:var(--red);}
 
-/* ── Click zone ── */
-#click-zone{
-  flex-shrink:0;display:flex;flex-direction:column;align-items:center;
-  padding:14px 16px 10px;background:#150b02;
-  border-bottom:1px solid var(--border);gap:5px;
+/* ── Content (scrollable) ── */
+#gfx-content{
+  flex:1;overflow-y:auto;min-height:0;
+  padding:10px 12px;display:flex;flex-direction:column;gap:10px;
 }
-#cup-btn{
-  position:relative;width:140px;height:140px;border-radius:50%;
-  background:radial-gradient(circle at 40% 38%,#6b3200 0%,#3a1800 70%);
-  border:3px solid var(--amber);display:flex;align-items:center;justify-content:center;
-  cursor:pointer;transition:transform .12s ease;overflow:visible;
-  -webkit-user-select:none;
-}
-#cup-btn:active{transform:scale(.85);}
-#cup-emoji{font-size:66px;line-height:1;pointer-events:none;}
+#gfx-content::-webkit-scrollbar{width:4px;}
+#gfx-content::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
 
-/* Steam */
-.steam{
-  position:absolute;border-radius:50%;
-  background:rgba(255,230,180,.22);pointer-events:none;
-  animation:steamRise 2s ease-out infinite;
+/* ── Footer ── */
+#gfx-footer{
+  flex-shrink:0;padding:10px 12px;background:var(--surf);
+  border-top:1px solid var(--border);
 }
-.s1{width:9px;height:9px;left:48px;bottom:105%;animation-delay:0s;}
-.s2{width:7px;height:7px;left:76px;bottom:105%;animation-delay:.7s;}
-.s3{width:6px;height:6px;left:36px;bottom:105%;animation-delay:1.4s;}
+.footer-btn{
+  width:100%;padding:14px;background:var(--amber);border:none;
+  color:#1c0e04;font-size:15px;font-weight:800;border-radius:10px;
+  cursor:pointer;font-family:inherit;letter-spacing:.3px;
+}
+.footer-btn:active{opacity:.8;}
+.footer-btn.secondary{background:var(--surf);color:var(--text);border:1px solid var(--border);}
 
-/* Float text */
-#floats{position:absolute;inset:0;pointer-events:none;overflow:visible;}
-.float-txt{
-  position:absolute;color:var(--amber);font-weight:800;font-size:14px;
-  white-space:nowrap;pointer-events:none;
-  animation:floatUp .9s ease-out forwards;
+/* ── Section cards ── */
+.section{background:var(--card);border-radius:10px;border:1px solid var(--border);overflow:hidden;}
+.section-head{
+  padding:10px 12px 8px;border-bottom:1px solid var(--border);
+  display:flex;justify-content:space-between;align-items:center;
+}
+.section-head .sh-title{font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--muted);text-transform:uppercase;}
+.section-head .sh-val{font-size:13px;font-weight:700;color:var(--amber);}
+.section-body{padding:10px 12px;}
+
+/* ── Metrics bars ── */
+.metric-row{display:flex;align-items:center;gap:8px;padding:4px 0;}
+.met-icon{font-size:15px;width:20px;flex-shrink:0;text-align:center;}
+.met-label{font-size:12px;color:var(--muted);width:88px;flex-shrink:0;}
+.met-bar-w{flex:1;height:7px;background:#1a0a00;border-radius:3px;overflow:hidden;}
+.met-bar-f{height:100%;border-radius:3px;transition:width .4s;}
+.met-val{font-size:12px;font-weight:700;min-width:28px;text-align:right;color:var(--text);}
+.met-delta{font-size:10px;min-width:20px;text-align:right;}
+
+/* ── Decision options ── */
+.dec-group{padding:10px 12px;border-bottom:1px solid var(--border);}
+.dec-group:last-child{border-bottom:none;}
+.dec-label{font-size:11px;color:var(--muted);margin-bottom:7px;font-weight:600;letter-spacing:.5px;}
+.dec-opts{display:flex;gap:6px;flex-wrap:wrap;}
+.dec-opt{
+  flex:1;min-width:70px;padding:8px 6px;background:var(--surf);
+  border:1px solid var(--border);border-radius:7px;cursor:pointer;
+  font-family:inherit;color:var(--text);font-size:12px;text-align:center;
+  transition:all .15s;line-height:1.3;
+}
+.dec-opt:active{opacity:.7;}
+.dec-opt.sel{background:#3a2200;border-color:var(--amber);color:var(--amber);}
+.dec-opt .opt-main{font-weight:700;font-size:13px;}
+.dec-opt .opt-sub{font-size:10px;color:var(--muted);margin-top:2px;}
+.dec-opt.sel .opt-sub{color:#b8820a;}
+
+/* ── Event card ── */
+.event-card{background:var(--card);border-radius:12px;border:2px solid var(--amber);overflow:hidden;}
+.event-head{background:linear-gradient(135deg,#2d1a08,#1a0e04);padding:14px 14px 10px;}
+.event-emoji-row{display:flex;align-items:center;gap:10px;margin-bottom:6px;}
+.event-big-emoji{font-size:36px;}
+.event-cat{font-size:9px;font-weight:700;letter-spacing:2px;color:var(--amber);text-transform:uppercase;}
+.event-ttl{font-size:18px;font-weight:800;color:var(--text);}
+.event-speaker{font-size:11px;color:var(--muted);margin-top:4px;font-style:italic;}
+.event-body{padding:12px 14px;background:#200f00;}
+.event-narrative{font-size:14px;color:var(--text);line-height:1.65;}
+.event-choices{padding:12px 14px;display:flex;flex-direction:column;gap:8px;}
+.choice-btn{
+  width:100%;padding:11px 14px;border-radius:8px;
+  background:var(--surf);border:1px solid var(--border);
+  color:var(--text);font-size:13px;font-weight:600;
+  cursor:pointer;font-family:inherit;text-align:left;
+  display:flex;align-items:flex-start;gap:10px;line-height:1.4;
+  transition:background .15s;
+}
+.choice-btn:active{background:#3a2200;}
+.choice-btn .ch-key{font-size:14px;font-weight:800;color:var(--amber);flex-shrink:0;}
+.choice-btn .ch-body{flex:1;}
+.choice-btn .ch-label{display:block;}
+.choice-btn .ch-note{display:block;font-size:11px;color:var(--muted);margin-top:2px;}
+.advisor-btn{
+  margin:0 14px 14px;padding:10px 14px;width:calc(100% - 28px);
+  background:transparent;border:1px dashed #5a4020;border-radius:8px;
+  color:var(--muted);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;
+  display:flex;align-items:center;gap:8px;justify-content:center;
+}
+.advisor-btn:active{background:#2a1a08;}
+
+/* ── P&L Receipt ── */
+.receipt{
+  background:#0a0500;border-radius:10px;border:1px solid #3a2208;
+  font-family:'Courier New',Courier,monospace;overflow:hidden;
+}
+.rcpt-head{
+  background:#1a0e04;padding:10px 14px;text-align:center;
+  border-bottom:1px dashed #3a2208;
+}
+.rcpt-title{font-size:13px;font-weight:700;color:var(--amber);letter-spacing:2px;}
+.rcpt-sub{font-size:10px;color:var(--muted);margin-top:2px;}
+.rcpt-body{padding:10px 14px;}
+.rcpt-row{display:flex;justify-content:space-between;align-items:center;padding:3px 0;font-size:13px;}
+.rcpt-row.sub{font-size:11px;color:var(--muted);}
+.rcpt-row.sep{border-top:1px dashed #3a2208;margin-top:4px;padding-top:7px;}
+.rcpt-row .rk{color:var(--text);}
+.rcpt-row .rv{font-weight:700;min-width:70px;text-align:right;}
+.rcpt-stat-row{display:flex;align-items:center;gap:8px;padding:3px 0;font-size:12px;font-family:inherit;}
+.rcpt-stat-row .rsk{color:var(--muted);width:100px;}
+.rcpt-stat-row .rold{color:var(--muted);}
+.rcpt-stat-row .rarrow{color:var(--muted);}
+.rcpt-stat-row .rnew{font-weight:700;}
+.rcpt-stat-row .rdelta{font-size:11px;margin-left:4px;}
+
+/* ── Overlay panels ── */
+.overlay{
+  position:fixed;inset:0;z-index:400;background:rgba(0,0,0,.85);
+  display:none;flex-direction:column;align-items:center;justify-content:flex-end;
+}
+.overlay.show{display:flex;}
+.overlay-sheet{
+  background:var(--surf);border-radius:20px 20px 0 0;border-top:2px solid var(--border);
+  width:100%;max-height:80dvh;overflow-y:auto;padding:16px;
+}
+.overlay-handle{width:40px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 14px;}
+.overlay-title{font-size:15px;font-weight:700;color:var(--amber);margin-bottom:12px;}
+.advisor-bubble{
+  background:#1a1000;border:1px solid #5a4010;border-radius:10px;
+  padding:14px;font-size:14px;color:var(--text);line-height:1.65;margin-bottom:10px;
+}
+.advisor-speaker{font-size:11px;color:var(--amber);margin-bottom:6px;font-weight:700;}
+.ol-close{
+  width:100%;padding:12px;background:var(--card);border:1px solid var(--border);
+  color:var(--text);font-size:13px;font-weight:600;border-radius:8px;cursor:pointer;font-family:inherit;
 }
 
-.tap-hint{font-size:11px;font-weight:700;color:var(--amber);letter-spacing:1px;}
-#click-val{font-size:11px;color:var(--muted);}
+/* Settings */
+.settings-label{font-size:11px;color:var(--muted);margin-bottom:6px;font-weight:600;letter-spacing:.5px;}
+.settings-input{
+  width:100%;padding:10px 12px;background:#0f0800;border:1px solid var(--border);
+  border-radius:8px;color:var(--text);font-size:13px;font-family:inherit;margin-bottom:12px;
+}
+.settings-input:focus{outline:none;border-color:var(--amber);}
+.model-opts{display:flex;flex-direction:column;gap:6px;margin-bottom:12px;}
+.model-opt{
+  padding:10px 12px;background:#0f0800;border:1px solid var(--border);
+  border-radius:8px;color:var(--muted);font-size:12px;cursor:pointer;font-family:inherit;text-align:left;
+}
+.model-opt.sel{border-color:var(--amber);color:var(--amber);}
 
-#quick-stats{display:flex;gap:8px;width:100%;}
-.stat-chip{
-  flex:1;background:var(--surf);border-radius:6px;
-  padding:5px 8px;font-size:11px;color:var(--muted);text-align:center;
+/* Game over / Win */
+#overlay-end{
+  position:fixed;inset:0;z-index:600;background:rgba(0,0,0,.92);
+  display:none;flex-direction:column;align-items:center;justify-content:center;padding:24px;
+}
+#overlay-end.show{display:flex;}
+.end-box{
+  background:var(--surf);border-radius:16px;padding:28px 22px;
+  text-align:center;width:100%;max-width:320px;border:2px solid var(--amber);
+}
+.end-emoji{font-size:56px;margin-bottom:10px;}
+.end-title{font-size:22px;font-weight:800;color:var(--amber);margin-bottom:6px;}
+.end-sub{font-size:13px;color:var(--muted);line-height:1.5;margin-bottom:16px;}
+.end-btn{
+  width:100%;padding:13px;background:var(--amber);border:none;
+  color:#1c0e04;font-size:14px;font-weight:800;border-radius:8px;cursor:pointer;font-family:inherit;
 }
 
-/* ── Tab bar ── */
-#tab-bar{
-  flex-shrink:0;display:flex;border-bottom:1px solid var(--border);
-  background:var(--surf);
-}
-.tab-btn{
-  flex:1;padding:10px 0;background:transparent;border:none;
-  border-bottom:2px solid transparent;color:var(--muted);
-  cursor:pointer;font-size:12px;font-weight:600;
-  transition:all .15s;font-family:inherit;
-}
-.tab-btn.active{color:var(--amber);border-bottom-color:var(--amber);}
-
-/* ── List ── */
-#list{
-  flex:1;overflow-y:auto;min-height:0;/* M8 */
-  padding:8px;display:flex;flex-direction:column;gap:5px;
-}
-#list::-webkit-scrollbar{width:4px;}
-#list::-webkit-scrollbar-track{background:var(--bg);}
-#list::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
-
-/* ── Item cards ── */
-.item-card{
-  display:flex;align-items:center;gap:10px;
-  background:var(--card);border-radius:8px;padding:8px 10px;
-  cursor:pointer;border:1px solid var(--border);transition:background .1s,opacity .2s;
-}
-.item-card.owned{background:var(--card-owned);border-color:var(--border-owned);}
-.item-card.dim  {opacity:.35;cursor:default;pointer-events:none;}
-.item-card:not(.dim):active{background:#4a2c12;}
-.card-emoji{font-size:24px;width:32px;text-align:center;flex-shrink:0;}
-.card-mid  {flex:1;min-width:0;}
-.card-name {font-size:13px;font-weight:600;color:var(--text);}
-.card-desc {font-size:11px;color:var(--muted);margin-top:1px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
-.card-right{flex-shrink:0;text-align:right;}
-.card-cost {font-size:13px;font-weight:700;}
-.card-count{font-size:11px;color:var(--amber);margin-top:1px;}
-.can {color:var(--green);}
-.cant{color:var(--muted);}
-
-/* ── Stats tab ── */
-.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:2px 0;}
-.stat-box{background:var(--card);border-radius:8px;padding:10px 12px;border:1px solid var(--border);}
-.stat-box .sl{font-size:11px;color:var(--muted);}
-.stat-box .sv{font-size:20px;font-weight:700;color:var(--amber);margin-top:3px;}
-.save-row{
-  display:flex;align-items:center;justify-content:space-between;
-  background:var(--surf);border-radius:8px;padding:10px 14px;
-  border:1px solid var(--border);margin-top:6px;
-}
-.save-lbl{font-size:12px;color:var(--muted);}
-#save-time{font-size:12px;color:var(--amber);margin-top:2px;}
-.reset-btn{
-  background:#5a1a10;color:#fca5a5;border:1px solid #7f2a1e;
-  border-radius:6px;padding:7px 14px;font-size:12px;font-weight:600;
-  cursor:pointer;font-family:inherit;
-}
-.reset-btn:active{opacity:.75;}
-.stats-tip{font-size:11px;color:#5a4030;text-align:center;margin-top:8px;padding:0 4px;line-height:1.5;}
-
-/* ── Milestone toast ── */
-#ms-toast{
-  display:none;position:fixed;bottom:20px;left:50%;
+/* Toast */
+#toast{
+  display:none;position:fixed;bottom:90px;left:50%;
   background:var(--surf);border:2px solid var(--amber);border-radius:12px;
   padding:10px 18px;align-items:center;gap:8px;
   font-size:13px;font-weight:600;color:var(--text);
-  white-space:nowrap;z-index:200;max-width:92%;pointer-events:none;
+  white-space:nowrap;z-index:300;max-width:92%;pointer-events:none;
 }
-#ms-toast.show{display:flex;animation:msToast 3.5s ease forwards;}
+#toast.show{display:flex;animation:toastIn 3.5s ease forwards;}
+@keyframes toastIn{0%{opacity:0;transform:translate(-50%,8px)}12%{opacity:1;transform:translate(-50%,0)}80%{opacity:1;transform:translate(-50%,0)}100%{opacity:0;transform:translate(-50%,-6px)}}
 
-/* ── Offline earnings toast ── */
-#oe-toast{
-  display:none;position:fixed;bottom:20px;left:50%;
-  background:#1a3a1a;border:2px solid var(--green);border-radius:12px;
-  padding:10px 18px;align-items:center;gap:8px;
-  font-size:13px;font-weight:600;color:#bbf7d0;
-  white-space:nowrap;z-index:200;max-width:92%;pointer-events:none;
-}
-#oe-toast.show{display:flex;animation:msToast 4s ease forwards;}
-
-/* ── Animations ── */
-@keyframes floatUp{
-  0%  {opacity:1;transform:translateY(0);}
-  100%{opacity:0;transform:translateY(-54px);}
-}
-@keyframes steamRise{
-  0%  {opacity:.45;transform:translateY(0)scaleX(1);}
-  100%{opacity:0;  transform:translateY(-38px)scaleX(2);}
-}
-@keyframes msToast{
-  0%  {opacity:0;transform:translate(-50%,8px);}
-  12% {opacity:1;transform:translate(-50%,0);}
-  80% {opacity:1;transform:translate(-50%,0);}
-  100%{opacity:0;transform:translate(-50%,-6px);}
-}
-
-/* ── Onboarding ── */
-#onboard{
-  position:fixed;inset:0;z-index:500;
-  display:none;flex-direction:column;overflow:hidden;
-  transition:opacity .4s ease;
-}
-#onboard::after{
-  content:'';position:absolute;inset:0;pointer-events:none;z-index:2;
-  background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,.15) 3px,rgba(0,0,0,.15) 4px);
-}
-.ob-slide{
-  position:absolute;inset:0; /* M12 */
-  display:flex;flex-direction:column;align-items:center;
-  padding:24px 20px 16px;
-  opacity:0;pointer-events:none;transition:opacity .35s ease;z-index:1;
-}
+/* Onboarding */
+#onboard{position:fixed;inset:0;z-index:500;display:none;flex-direction:column;overflow:hidden;transition:opacity .4s;}
+#onboard::after{content:'';position:absolute;inset:0;pointer-events:none;z-index:2;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,.15) 3px,rgba(0,0,0,.15) 4px);}
+.ob-slide{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;padding:24px 20px 16px;opacity:0;pointer-events:none;transition:opacity .35s ease;z-index:1;}
 .ob-slide.active{opacity:1;pointer-events:all;}
 .ob-top{display:flex;justify-content:center;flex-shrink:0;}
-.ob-badge{
-  font-size:10px;font-weight:700;letter-spacing:3px;color:#22d3ee;
-  text-transform:uppercase;background:rgba(34,211,238,.08);
-  border:1px solid rgba(34,211,238,.3);padding:4px 14px;border-radius:3px;
-}
-.ob-art{
-  flex:1;display:flex;align-items:center;justify-content:center;
-  width:100%;min-height:0;padding:12px 0;
-}
-.ob-art svg{
-  image-rendering:pixelated;image-rendering:crisp-edges;
-  max-height:220px;max-width:min(280px,90vw);
-  width:auto;height:auto;display:block;
-}
+.ob-badge{font-size:10px;font-weight:700;letter-spacing:3px;color:#22d3ee;text-transform:uppercase;background:rgba(34,211,238,.08);border:1px solid rgba(34,211,238,.3);padding:4px 14px;border-radius:3px;}
+.ob-art{flex:1;display:flex;align-items:center;justify-content:center;width:100%;min-height:0;padding:12px 0;}
+.ob-art svg{image-rendering:pixelated;max-height:220px;max-width:min(280px,90vw);width:auto;height:auto;display:block;}
 @keyframes artPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
 .ob-art-anim svg{animation:artPulse 2.2s ease-in-out infinite;}
 .ob-text{flex-shrink:0;text-align:center;padding:0 4px;}
-.ob-big-title{
-  font-size:30px;font-weight:800;letter-spacing:3px;color:#f59e0b;
-  text-transform:uppercase;margin-bottom:6px;
-  text-shadow:0 0 24px rgba(245,158,11,.4);
-}
-.ob-sub{font-size:11px;letter-spacing:4px;color:#9c7a4a;text-transform:uppercase;}
-.ob-title{
-  font-size:12px;font-weight:700;letter-spacing:2.5px;
-  color:#f59e0b;text-transform:uppercase;margin-bottom:10px;
-}
-.ob-story{font-size:14px;color:#fef3c7;line-height:1.7;max-width:300px;margin:0 auto;}
-.ob-nav{
-  display:flex;justify-content:space-between;align-items:center;
-  width:100%;margin-top:18px;flex-shrink:0;
-}
-.ob-skip{
-  background:transparent;border:1px solid #2a1a0a;color:#5a3a1a;
-  font-size:12px;padding:9px 16px;border-radius:6px;cursor:pointer;font-family:inherit;
-}
-.ob-next{
-  background:#f59e0b;border:none;color:#1c0e04;font-size:13px;font-weight:700;
-  padding:10px 20px;border-radius:6px;cursor:pointer;font-family:inherit;letter-spacing:.5px;
-}
-.ob-next:active{opacity:.8;}
+.ob-big-title{font-size:28px;font-weight:800;letter-spacing:2px;color:var(--amber);text-transform:uppercase;margin-bottom:6px;text-shadow:0 0 24px rgba(245,158,11,.4);}
+.ob-sub{font-size:11px;letter-spacing:3px;color:var(--muted);text-transform:uppercase;}
+.ob-title{font-size:12px;font-weight:700;letter-spacing:2px;color:var(--amber);text-transform:uppercase;margin-bottom:10px;}
+.ob-story{font-size:14px;color:var(--text);line-height:1.7;max-width:300px;margin:0 auto;}
+.ob-nav{display:flex;justify-content:space-between;align-items:center;width:100%;margin-top:18px;flex-shrink:0;}
+.ob-skip{background:transparent;border:1px solid #2a1a0a;color:#5a3a1a;font-size:12px;padding:9px 16px;border-radius:6px;cursor:pointer;font-family:inherit;}
+.ob-next{background:var(--amber);border:none;color:#1c0e04;font-size:13px;font-weight:700;padding:10px 20px;border-radius:6px;cursor:pointer;font-family:inherit;letter-spacing:.5px;}
 .ob-dots{display:flex;gap:7px;align-items:center;}
-.ob-dot{
-  width:8px;height:8px;border-radius:50%;background:#1a0a04;
-  border:1px solid #3a1a08;transition:all .2s;
-}
-.ob-dot.active{background:#f59e0b;border-color:#f59e0b;}
-.replay-btn{
-  background:transparent;border:1px solid var(--border);color:var(--muted);
-  font-size:12px;padding:8px;border-radius:6px;cursor:pointer;
-  font-family:inherit;width:100%;margin-top:6px;
-}
-
-/* ── Rush Hour ── */
-#cup-btn.rush{
-  border-color:#ef4444;
-  box-shadow:0 0 28px rgba(239,68,68,.55),0 0 60px rgba(239,68,68,.18);
-}
-@keyframes rushPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
-#cup-btn.rush:not(:active){animation:rushPulse .55s ease-in-out infinite;}
-#tap-hint.rush{color:#ef4444;}
-#click-val.rush{color:#ef4444;}
-
-/* ── Help / Settings ── */
-.how-section{
-  background:var(--card);border-radius:8px;padding:12px;
-  border:1px solid var(--border);display:flex;flex-direction:column;gap:9px;
-}
-.how-head{
-  font-size:10px;font-weight:700;letter-spacing:2px;color:var(--amber);
-  text-transform:uppercase;padding-bottom:6px;border-bottom:1px solid var(--border);
-}
-.how-row{display:flex;gap:10px;align-items:flex-start;}
-.hw-ic{font-size:18px;flex-shrink:0;width:26px;text-align:center;margin-top:2px;}
-.hw-tx{font-size:13px;color:var(--text);line-height:1.5;}
-.hw-tx b{color:var(--amber);}
-.set-btn{
-  display:flex;align-items:center;justify-content:center;gap:8px;
-  background:var(--surf);border:1px solid var(--border);color:var(--text);
-  font-size:13px;font-weight:600;padding:12px;border-radius:8px;
-  cursor:pointer;font-family:inherit;width:100%;
-}
-.set-btn:active{opacity:.75;}
-.set-btn.danger{background:#3a0a0a;border-color:#7f2a1e;color:#fca5a5;}
+.ob-dot{width:8px;height:8px;border-radius:50%;background:#1a0a04;border:1px solid #3a1a08;transition:all .2s;}
+.ob-dot.active{background:var(--amber);border-color:var(--amber);}
 </style>
 </head>
 <body>
 
 <div id="onboard"></div>
-
-<div id="offline-banner">⚡ You're offline — game still works, progress is saving locally</div>
-
-<div id="header">
-  <div>
-    <div class="title">☕ Kopi O King</div>
-    <div class="sub">Singapore Hawker Clicker</div>
+<div id="overlay-advisor" class="overlay">
+  <div class="overlay-sheet">
+    <div class="overlay-handle"></div>
+    <div class="overlay-title">☕ Uncle Ah Kow says…</div>
+    <div class="advisor-speaker">Your most experienced staff member</div>
+    <div class="advisor-bubble" id="advisor-text">Uncle Ah Kow is thinking…</div>
+    <button class="ol-close" onclick="closeOverlay('overlay-advisor')">Got it, I'll decide now</button>
   </div>
-  <div>
-    <div id="money-display">$0</div>
-    <div id="cps-display">$0/sec</div>
+</div>
+<div id="overlay-settings" class="overlay">
+  <div class="overlay-sheet">
+    <div class="overlay-handle"></div>
+    <div class="overlay-title">⚙️ Settings</div>
+    <div class="settings-label">GEMINI API KEY (for Uncle Ah Kow advisor)</div>
+    <input class="settings-input" id="apikey-input" type="password" placeholder="Paste your Gemini API key here" autocomplete="off">
+    <div class="settings-label">AI MODEL</div>
+    <div class="model-opts" id="model-opts"></div>
+    <button class="ol-close" style="margin-bottom:10px;" onclick="saveSettings()">Save Settings</button>
+    <button class="ol-close" onclick="closeOverlay('overlay-settings')">Cancel</button>
+  </div>
+</div>
+<div id="overlay-end">
+  <div class="end-box" id="end-box"></div>
+</div>
+
+<div id="gfx-header">
+  <div class="gh-left">
+    <div class="title">☕ KOPI O KING</div>
+    <div class="daytag" id="day-tag">Day 1 · Branch 1</div>
+  </div>
+  <div class="gh-right">
+    <div id="cash-display" class="pos">$5,000</div>
+    <div id="profit-display">avg profit —</div>
   </div>
 </div>
 
-<div id="click-zone">
-  <div id="cup-btn" role="button" aria-label="Tap to brew kopi">
-    <div class="steam s1"></div>
-    <div class="steam s2"></div>
-    <div class="steam s3"></div>
-    <div id="cup-emoji">☕</div>
-    <div id="floats"></div>
-  </div>
-  <div id="tap-hint" class="tap-hint">TAP TO BREW!</div>
-  <div id="click-val">+$1 per tap</div>
-  <div id="quick-stats">
-    <div class="stat-chip" id="chip-items">🏪 0 items</div>
-    <div class="stat-chip" id="chip-total">💰 $0 earned</div>
-  </div>
+<div id="gfx-content"></div>
+
+<div id="gfx-footer">
+  <button class="footer-btn" id="footer-btn" onclick="footerAction()">Open For Business →</button>
 </div>
 
-<div id="tab-bar">
-  <button class="tab-btn active" data-tab="items"    onclick="switchTab('items')"   >🍽️ Menu</button>
-  <button class="tab-btn"        data-tab="upgrades" onclick="switchTab('upgrades')">⬆️ Upgrades</button>
-  <button class="tab-btn"        data-tab="stats"    onclick="switchTab('stats')"   >📊 Stats</button>
-  <button class="tab-btn"        data-tab="settings" onclick="switchTab('settings')">⚙️ Settings</button>
-</div>
-
-<div id="list"></div>
-
-<div id="ms-toast"></div>
-<div id="oe-toast"></div>
+<div id="toast"></div>
 
 <script>
-// ── SW registration — M3: FIRST LINE before any async ─────────────────────
+// ── SW registration — M3: FIRST ───────────────────────────────────────────────
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('./sw.js').catch(() => {});
 }
 
 // ── Onboarding ────────────────────────────────────────────────────────────────
-const OB_KEY='kok-intro-v1';
-
-// Pixel art palette
-const OB_PAL={
+const OB_KEY = 'koptyc-intro-v1';
+const OB_PAL = {
   A:'#f59e0b',D:'#92400e',W:'#fef3c7',K:'#1c0e04',
   S:'#78716c',R:'#dc2626',Y:'#fbbf24',C:'#22d3ee',
   M:'#292524',L:'#e2d9c8',B:'#1d4ed8',P:'#7c3aed',
 };
-
-// Render a string-array pixel sprite to SVG
-function renderPx(rows,px){
-  const H=rows.length,W=Math.max(...rows.map(r=>r.length));
+function renderPx(rows, px) {
+  const H=rows.length, W=Math.max(...rows.map(r=>r.length));
   let o=`<svg viewBox="0 0 ${W*px} ${H*px}" xmlns="http://www.w3.org/2000/svg">`;
   for(let y=0;y<H;y++)for(let x=0;x<rows[y].length;x++){
-    const c=rows[y][x];if(c==='.'||!OB_PAL[c])continue;
+    const c=rows[y][x]; if(c==='.'||!OB_PAL[c])continue;
     o+=`<rect x="${x*px}" y="${y*px}" width="${px}" height="${px}" fill="${OB_PAL[c]}"/>`;
   }
   return o+'</svg>';
 }
-
-// ── Pixel sprites (12–13 wide × 12–13 tall, px=10 → ~120×130 px) ────────────
-
-// Slide 1: Kopi cup with steam (13×12)
-const CUP_ART=[
-  '.....CC.CC...',
-  '......C.C....',
-  '.............',
-  '....AAAAAAA..',
-  '...AAAAAAAAA.',
-  '...A.MMMMMA.A',
-  '...A.MMMMMA..',
-  '...A.MMMMMA.A',
-  '...A.MMMMMA..',
-  '...AAAAAAAAA.',
-  '....AAAAAAA..',
-  '..AAAAAAAAAAA',
-];
-
-// Slide 2: Uncle Ah Kow — apron, smile, chunky sprite (12×13)
-const UNCLE_ART=[
-  '....DDDD....',
-  '...DDDDDD...',
-  '...DDDDDD...',
-  '...DMDDMD...',
-  '...DDDDDD...',
-  '....MDDM....',
-  '..DDDDDDDD..',
-  '..WWWWWWWW..',
-  '.WWWWWWWWWW.',
-  '.WWWWWWWWWW.',
-  '..WWWWWWWW..',
-  '..SS....SS..',
-  '..KK....KK..',
-];
-
-// Slide 3: The Ang Moh Inspector — beret, blue suit, red tie (12×13)
-const INSP_ART=[
-  '..PPPPPPPP..',
-  '...PPPPPP...',
-  '...LLLLLL...',
-  '...LMLLML...',
-  '...LLLLLL...',
-  '....MLLM....',
-  '..BBBBBBBB..',
-  '..B.LLLL.B..',
-  '..B.RRRR.B..',
-  '..BBBBBBBB..',
-  '..SS....SS..',
-  '..SS....SS..',
-  '..KK....KK..',
-];
-
-// Slide 4: Gold trophy with cyan sparkles (12×12)
-const TROPHY_ART=[
-  '...CC..CC...',
-  '..C......C..',
-  '...CC..CC...',
-  '............',
-  '....AAAA....',
-  '...AAAAAA...',
-  '..AAAAAAAA..',
-  '..A.YYYY.A..',
-  '..AAAAAAAA..',
-  '...AAAAAA...',
-  '....AAAA....',
-  '.AAAAAAAAAA.',
-];
-
+const CUP_ART=['.....CC.CC...','......C.C....','.............',
+  '....AAAAAAA..','...AAAAAAAAA.','...A.MMMMMA.A','...A.MMMMMA..',
+  '...A.MMMMMA.A','...A.MMMMMA..','...AAAAAAAAA.','....AAAAAAA..','..AAAAAAAAAAA'];
+const UNCLE_ART=['....DDDD....','...DDDDDD...','...DDDDDD...','...DMDDMD...',
+  '...DDDDDD...','....MDDM....','..DDDDDDDD..','..WWWWWWWW..','.WWWWWWWWWW.',
+  '.WWWWWWWWWW.','..WWWWWWWW..','..SS....SS..','..KK....KK..'];
+const CHART_ART=['............','..AAAA......','..AAAA......','..AAAADD....',
+  '..AAAADD....','..AAAADDYY..','..AAAAddyy..','AAAAAAAAYYY.','AAAAAAAAYYY.',
+  'AAAAAAAAYYYW','AAAAAAAAYYYW','AAAAAAAAYYYW'];
+const TROPHY_ART=['...CC..CC...','..C......C..','...CC..CC...',
+  '............','....AAAA....','...AAAAAA...','..AAAAAAAA..','..A.YYYY.A..',
+  '..AAAAAAAA...','...AAAAAA...','....AAAA.....','AAAAAAAAAAAAA'];
 const SLIDES=[
-  {
-    bg:'#050512',badge:'✦ SEGA PRESENTS ✦',
-    art:CUP_ART,anim:true,
-    bigTitle:'KOPI O KING',sub:'A Singapore Hawker Epic',story:null,
-  },
-  {
-    bg:'#0a0400',badge:'● YEAR 1965 ●',
-    art:UNCLE_ART,
-    title:'UNCLE AH KOW',
-    story:'Last grandson of a Hokkien kopi master.\nHis kopi so shiok, even Pulau Ubin fishermen took a bumboat just to drink one cup.',
-  },
-  {
-    bg:'#06000e',badge:'⚠ DANGER INCOMING ⚠',
-    art:INSP_ART,
-    title:'THE ANG MOH INSPECTOR',
-    story:'One boh liao Tuesday, a mysterious ang moh arrived with a small red book.\n"I am from Michelin," he said.\nWalao eh. You sell tyre meh?',
-  },
-  {
-    bg:'#020a04',badge:'▶ PLAYER 1 READY ◀',
-    art:TROPHY_ART,
-    title:'YOUR TURN, CHAMP',
-    story:'Uncle Ah Kow retire liao. The stall is yours.\nTap. Brew. Hire aunties. Conquer Singapore.\nBecome the KOPI O KING.',
-    last:true,
-  },
+  {bg:'#050512',badge:'✦ SEGA PRESENTS ✦',art:CUP_ART,anim:true,bigTitle:'KOPI O KING',sub:'Tycoon Edition',story:null},
+  {bg:'#0a0400',badge:'● YOUR INHERITANCE ●',art:UNCLE_ART,title:'THE STALL IS YOURS',
+    story:'Your grandfather left you his kopitiam. $5,000 in savings. One helper. A secret kopi recipe.\nCan you build a business empire from nothing?'},
+  {bg:'#06000e',badge:'★ YOUR DECISIONS ★',art:CHART_ART,title:'EVERY DAY COUNTS',
+    story:'Choose your bean source. Set your price. Manage your staff.\nHandle crises. Every decision changes your profit, your reputation, your future.'},
+  {bg:'#020a04',badge:'▶ YOUR MISSION ◀',art:TROPHY_ART,title:'5 BRANCHES. ONE EMPIRE.',last:true,
+    story:'Start with one stall. Make smart decisions.\nSave up. Expand.\nBuild 5 profitable branches.\nBecome the KOPI O KING.'},
 ];
-
 function buildOnboarding(){
   const el=document.getElementById('onboard');
   el.innerHTML=SLIDES.map((s,i)=>{
-    const svg=renderPx(s.art,10);
     const artCls='ob-art'+(s.anim?' ob-art-anim':'');
     const textHtml=s.bigTitle
       ?`<div class="ob-big-title">${s.bigTitle}</div><div class="ob-sub">${s.sub}</div>`
       :`<div class="ob-title">${s.title}</div><div class="ob-story">${s.story.replace(/\n/g,'<br>')}</div>`;
     const dots=SLIDES.map((_,j)=>`<div class="ob-dot${j===i?' active':''}"></div>`).join('');
-    const nextFn=s.last?'closeOnboard()':`obNext(${i})`;
-    const nextTxt=s.last?'START PLAYING ▶':'NEXT ▶';
+    const nFn=s.last?'closeOnboard()':`obNext(${i})`;
     return `<div class="ob-slide${i===0?' active':''}" id="ob-${i}" style="background:${s.bg};">
       <div class="ob-top"><span class="ob-badge">${s.badge}</span></div>
-      <div class="${artCls}">${svg}</div>
+      <div class="${artCls}">${renderPx(s.art,10)}</div>
       <div class="ob-text">${textHtml}</div>
       <div class="ob-nav">
         <button class="ob-skip" onclick="closeOnboard()">Skip</button>
         <div class="ob-dots">${dots}</div>
-        <button class="ob-next" onclick="${nextFn}">${nextTxt}</button>
-      </div>
-    </div>`;
+        <button class="ob-next" onclick="${nFn}">${s.last?'START PLAYING ▶':'NEXT ▶'}</button>
+      </div></div>`;
   }).join('');
 }
-
-function obNext(from){
-  document.getElementById('ob-'+from).classList.remove('active');
-  document.getElementById('ob-'+(from+1)).classList.add('active');
+function obNext(i){
+  document.getElementById('ob-'+i).classList.remove('active');
+  document.getElementById('ob-'+(i+1)).classList.add('active');
 }
-
 function closeOnboard(){
   localStorage.setItem(OB_KEY,'done');
   const el=document.getElementById('onboard');
   el.style.opacity='0';
   setTimeout(()=>{el.style.display='none';el.style.opacity='';},420);
 }
+function openOnboard(){buildOnboarding();document.getElementById('onboard').style.display='flex';}
 
-function openOnboard(){
-  buildOnboarding();
-  const el=document.getElementById('onboard');
-  el.style.display='flex';
-}
-
-// ── Game data ───────────────────────────────────────────────────────────────
-const ITEMS = [
-  {id:'kopi',        name:'Kopi O',          emoji:'☕', desc:'Classic Singapore black coffee',        baseCost:15,       baseCps:0.1   },
-  {id:'toast',       name:'Kaya Toast',       emoji:'🍞', desc:'Kaya & butter on crispy bread',         baseCost:100,      baseCps:0.5   },
-  {id:'teh',         name:'Teh Tarik',        emoji:'🧋', desc:'Pulled milk tea — very frothy',          baseCost:500,      baseCps:2     },
-  {id:'nasilemak',   name:'Nasi Lemak',       emoji:'🍚', desc:'Coconut rice + sambal + ikan bilis',     baseCost:2000,     baseCps:8     },
-  {id:'chickenrice', name:'Chicken Rice',     emoji:'🐓', desc:'Hainanese classic, queue every day!',   baseCost:8000,     baseCps:30    },
-  {id:'ckwt',        name:'Char Kway Teow',   emoji:'🍜', desc:'Wok hei! Big fire only lah',            baseCost:30000,    baseCps:100   },
-  {id:'laksa',       name:'Laksa',            emoji:'🍲', desc:'Katong style spicy coconut noodles',    baseCost:100000,   baseCps:350   },
-  {id:'satay',       name:'Satay',            emoji:'🍢', desc:'Charcoal skewers + peanut sauce',       baseCost:400000,   baseCps:1200  },
-  {id:'chillicrab',  name:'Chilli Crab',      emoji:'🦀', desc:"Singapore's most famous dish!",         baseCost:1500000,  baseCps:4500  },
-  {id:'msw',         name:'Mao Shan Wang',    emoji:'👑', desc:'King of fruits. Very atas, very power', baseCost:6000000,  baseCps:18000 },
-];
-
-const UPGRADES = [
-  {id:'u1', emoji:'🥄', name:'Better Ladle',          desc:'Brew twice as fast. Click ×2.',              cost:75,       cm:2, pm:1  },
-  {id:'u2', emoji:'👴', name:'Regular Customers',     desc:'Loyal uncles boost production. CPS ×1.5.',   cost:800,      cm:1, pm:1.5},
-  {id:'u3', emoji:'⏰', name:'Morning Rush',           desc:'Office hour crowd floods in. Click ×3.',      cost:5000,     cm:3, pm:1  },
-  {id:'u4', emoji:'📸', name:'Food Blog Famous',      desc:'IG post went viral overnight. CPS ×2.',       cost:30000,    cm:1, pm:2  },
-  {id:'u5', emoji:'⭐', name:'Michelin Bib Gourmand', desc:'International recognition! CPS ×3.',          cost:150000,   cm:1, pm:3  },
-  {id:'u6', emoji:'🤫', name:"Auntie's Secret Recipe",desc:'3 generations of secrets. Click ×5.',        cost:600000,   cm:5, pm:1  },
-  {id:'u7', emoji:'🌟', name:'Michelin Star',          desc:'First hawker to get a star! ALL ×5.',         cost:3000000,  cm:5, pm:5  },
-];
-
-const MILESTONES = [
-  {at:50,        emoji:'😊', msg:"Eh, not bad leh! First $50 earned!"},
-  {at:500,       emoji:'😄', msg:"Walao, regulars coming back every day!"},
-  {at:5000,      emoji:'🎉', msg:"Your stall got lobang! Queue forming outside!"},
-  {at:50000,     emoji:'📺', msg:"CNA news wants to feature you! So famous!"},
-  {at:500000,    emoji:'✈️', msg:"Tourists fly in just for your food!"},
-  {at:5000000,   emoji:'⭐', msg:"Michelin reviewer spotted at your stall!"},
-  {at:50000000,  emoji:'🏆', msg:"10 outlets islandwide. You made it!"},
-  {at:500000000, emoji:'👑', msg:"Kopi O King of the Universe! Shiok ah!"},
-];
-
-// ── State ───────────────────────────────────────────────────────────────────
-const gs = {
-  money:0, total:0,
-  owned:{},
-  bought:new Set(),
-  clickMulti:1, cpsMulti:1,
-  lastMs:-1,
-  playTime:0,
-  highCps:0,
-  savedAt:null,
-  tab:'items',
-  fid:0,
+// ── Game constants ────────────────────────────────────────────────────────────
+const BEANS={
+  malaysia: {label:'Malaysia',emoji:'🇲🇾',cost:0.30,quality:48,satGrow:0.4, repGrow:0.0,desc:'Cheap, reliable'},
+  indonesia:{label:'Indonesia',emoji:'🇮🇩',cost:0.45,quality:62,satGrow:0.8, repGrow:0.1,desc:'Good balance'},
+  colombia: {label:'Colombia', emoji:'🇨🇴',cost:0.80,quality:82,satGrow:1.5, repGrow:0.4,desc:'Great quality'},
+  roastery: {label:'Roastery', emoji:'🏭', cost:1.10,quality:95,satGrow:2.5, repGrow:0.8,desc:'Excellent, stockout risk',stockout:0.15},
 };
+const PRICES=[
+  {v:1.20,label:'$1.20',desc:'Budget — more customers',  custMult:1.35,satMod:2},
+  {v:1.50,label:'$1.50',desc:'Standard',                 custMult:1.00,satMod:0},
+  {v:1.80,label:'$1.80',desc:'Premium — less customers', custMult:0.72,satMod:-4},
+  {v:2.00,label:'$2.00',desc:'Very premium',             custMult:0.52,satMod:-8},
+];
+const HOURS=[
+  {v:'standard',label:'Standard',  desc:'7am – 5pm',      custMult:1.00,extraCost:0, moraleMod:0},
+  {v:'early',   label:'Early Bird',desc:'5am – 3pm (+customers)',custMult:1.14,extraCost:20,moraleMod:-8},
+  {v:'extended',label:'Extended',  desc:'7am – 9pm (+more)',custMult:1.28,extraCost:35,moraleMod:-14},
+];
+const MODELS=['gemini-2.5-flash','gemini-2.5-flash-lite','gemini-2.0-flash','gemini-1.5-flash','gemini-1.5-pro'];
 
-// ── Helpers ─────────────────────────────────────────────────────────────────
-function fmt(n){
-  if(n>=1e12)return(n/1e12).toFixed(1)+'T';
-  if(n>=1e9) return(n/1e9).toFixed(1)+'B';
-  if(n>=1e6) return(n/1e6).toFixed(1)+'M';
-  if(n>=1e3) return(n/1e3).toFixed(1)+'K';
-  return Math.floor(n).toString();
-}
-function fmtTime(s){
-  const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),sc=Math.floor(s%60);
-  if(h>0)return h+'h '+m+'m';
-  if(m>0)return m+'m '+sc+'s';
-  return sc+'s';
-}
-function fmtSaved(iso){
-  if(!iso)return'Not saved yet';
-  const d=Math.floor((Date.now()-new Date(iso))/1000);
-  if(d<10)return'Just now';
-  if(d<60)return d+'s ago';
-  if(d<3600)return Math.floor(d/60)+'m ago';
-  return Math.floor(d/3600)+'h ago';
-}
-function costFor(item){
-  return Math.floor(item.baseCost*Math.pow(1.15,gs.owned[item.id]||0));
-}
-function calcCps(){
-  return ITEMS.reduce((s,it)=>s+it.baseCps*(gs.owned[it.id]||0),0)*gs.cpsMulti;
-}
-function clickVal(){
-  return Math.max(1,gs.clickMulti*(1+calcCps()*0.05))*(rushOn?10:1);
-}
-function totalOwned(){
-  return Object.values(gs.owned).reduce((a,b)=>a+b,0);
-}
+// ── Events ────────────────────────────────────────────────────────────────────
+const EVENTS=[
+  {id:'covid',trigger:{type:'story',day:30},repeatable:false,
+   emoji:'😷',cat:'Breaking News',title:'COVID-19 Lockdown',speaker:'Radio — 938NOW',
+   narrative:'The government just announced a 2-week circuit breaker. All dine-in suspended with immediate effect. Your hawker centre has to close to walk-in customers.',
+   choices:[
+    {label:'🛵 Pivot to delivery via Grab Food',note:'Cost $300. Capture 40% of normal customers online. Commission 30%.',cost:300,fx:{custMult:0.40,dur:14,rep:5}},
+    {label:'✂️ Reduce costs — skeleton crew',note:'Minimum ops. Pay staff basic. 10% of normal customers only.',cost:0,fx:{custMult:0.10,dur:14,morale:-12}},
+    {label:'😴 Hibernate — fully close up',note:'Zero revenue. Zero cost. Wait it out.',cost:0,fx:{custMult:0,dur:14,morale:-8,rep:-5}},
+  ]},
+  {id:'inspector',trigger:{type:'random',prob:0.04},repeatable:false,
+   emoji:'📋',cat:'Government',title:'NEA Health Inspection',speaker:'Ah Lian — your staff',
+   narrative:'"Boss boss! NEA inspector outside lah. Say he want to check our kitchen. Our grease trap never clean properly since last month. He writing notes already, very serious face."',
+   choices:[
+    {label:'✅ Close 1 day — clean everything properly',note:'Lose 1 day revenue. Reputation improves. Clean record.',cost:0,fx:{sat:-5,rep:12,custMult:0,dur:1}},
+    {label:'💰 Pay admin penalty and move on',note:'Pay fine quietly. Life goes on.',cost:400,fx:{rep:-5}},
+    {label:'🎲 Wing it — hope for the best',note:'60% chance: fine. 40% chance: forced closure 3 days.',cost:0,fx:{rep:-15,_gamble:'inspector'}},
+  ]},
+  {id:'starbucks',trigger:{type:'story',day:45},repeatable:false,
+   emoji:'🟢',cat:'Competitor',title:'Starbucks Opens Next Door',speaker:'Beng Huat — regular customer',
+   narrative:'"Uncle, you see or not? Starbucks opening at the new mall 3 minutes from here. Got WiFi, got aircon, got nice sofa. Already I see Ah Mei and her kakis going there this morning leh."',
+   choices:[
+    {label:'💳 Launch stamp card loyalty program',note:'$150 printing. Reward loyal customers. 10 stamps = 1 free kopi.',cost:150,fx:{sat:12,rep:8,custBonus:12,dur:999}},
+    {label:'📣 Run "Real Singapore Kopi" campaign',note:'$80 flyers. Lean into authenticity vs Starbucks.',cost:80,fx:{sat:6,rep:10,custBonus:8,dur:14}},
+    {label:'🤷 Continue as usual — loyal customers will stay',note:'Do nothing. See what happens.',cost:0,fx:{sat:-8,custBonus:-12,dur:999}},
+  ]},
+  {id:'tiktok',trigger:{type:'random',prob:0.025,minDay:10},repeatable:false,
+   emoji:'🎵',cat:'Social Media',title:'You Went Viral on TikTok',speaker:'Young customer — 22 years old',
+   narrative:'"Uncle! Someone filmed you making kopi and posted it! "Uncle with the golden hands" lah. Already 900,000 views! People leaving comments saying must try. Queue starting outside already!"',
+   choices:[
+    {label:'📸 Ride the wave — decorate stall, do interviews',note:'$200 for setup. Massive boost for 2 weeks.',cost:200,fx:{rep:22,sat:8,custBonus:45,dur:14}},
+    {label:'😊 Smile and keep doing your thing',note:'Organic boost. No cost. Smaller but real.',cost:0,fx:{rep:12,custBonus:25,dur:7}},
+  ]},
+  {id:'supplier',trigger:{type:'random',prob:0.05,minDay:15},repeatable:true,
+   emoji:'📈',cat:'Supply Chain',title:'Bean Prices Surge 30%',speaker:'WhatsApp from supplier',
+   narrative:'"Dear valued customer. Due to global supply chain disruptions and poor harvests in Brazil, bean prices will increase 30% effective this Monday. We apologise for any inconvenience caused."',
+   choices:[
+    {label:'💰 Absorb the cost — keep prices the same',note:'Your profit margin drops 30% for 3 weeks. Customers stay happy.',cost:0,fx:{profitMod:-0.30,dur:21}},
+    {label:'💵 Pass it to customers — raise price by $0.20',note:'Less customers but margin protected.',cost:0,fx:{_priceAdd:0.20,sat:-8}},
+    {label:'🔄 Switch to cheaper bean source immediately',note:'Quality drops. Some customers notice.',cost:0,fx:{_beanDowngrade:true,sat:-10}},
+  ]},
+  {id:'stafffight',trigger:{type:'random',prob:0.04,minDay:20},repeatable:false,
+   emoji:'😤',cat:'HR Crisis',title:'Staff Drama',speaker:'Ah Kow — senior staff',
+   narrative:'"Boss, I need to tell you something. Ah Lian and I cannot tahan each other anymore. She always argue with me in front of customer. Very paiseh. One of us must go, otherwise I also going to quit."',
+   choices:[
+    {label:'🤝 Team lunch — mediate together',note:'$80 team lunch. Resolve peacefully. Morale boost.',cost:80,fx:{morale:18}},
+    {label:'🚪 Let the troublemaker go',note:'Lose 1 staff. Morale shock. Need to hire again.',cost:0,fx:{morale:-20,staff:-1}},
+    {label:'🙈 Ignore it — they will sort it out',note:'Hope it resolves itself. Usually doesn\'t.',cost:0,fx:{morale:-28,dur:7}},
+  ]},
+  {id:'pipe',trigger:{type:'random',prob:0.03,minDay:5},repeatable:true,
+   emoji:'💧',cat:'Maintenance',title:'Pipe Burst Under Counter',speaker:'Ah Lian — your staff',
+   narrative:'"Boss! The water pipe under the coffee counter burst! Water all over the floor! Cannot open today, very dangerous. We need to fix before we can serve anyone."',
+   choices:[
+    {label:'🔧 Proper fix — call licensed plumber',note:'$600. Closed today. Fixed permanently.',cost:600,fx:{custMult:0,dur:1}},
+    {label:'🩹 Patch it cheap — call handyman $150',note:'50% chance it breaks again in 1-2 weeks.',cost:150,fx:{custMult:0,dur:1,_gamble:'pipe'}},
+  ]},
+  {id:'catering',trigger:{type:'random',prob:0.04,minDay:20},repeatable:true,
+   emoji:'🏢',cat:'Big Opportunity',title:'Corporate Catering Order',speaker:'Phone call — DBS Bank officer',
+   narrative:'"Hello, I am calling from DBS Bank Marina Bay office. We have a town hall tomorrow for 350 staff. Can you supply 250 cups of kopi and teh? We will pay $1.80 per cup, cash on delivery."',
+   choices:[
+    {label:'✅ Accept! ($450 revenue, $200 extra beans)',note:'Net $250 profit. Word will spread to office workers.',cost:200,fx:{cash:450,rep:12,custBonus:15,dur:21}},
+    {label:'❌ Too much — politely decline',note:'Miss out but no risk.',cost:0,fx:{rep:-3}},
+  ]},
+  {id:'grant',trigger:{type:'random',prob:0.03,minDay:10},repeatable:false,
+   emoji:'🏛️',cat:'Government',title:'Enterprise Singapore Grant',speaker:'Email — Enterprise Singapore',
+   narrative:'"Congratulations! Your kopitiam qualifies for the Hawker Modernisation Grant of $2,500. To claim, please submit your business registration, last 3 months bank statements, and a brief business plan. Processing takes 2 weeks."',
+   choices:[
+    {label:'📝 Apply — take 1 admin day',note:'Close today for paperwork. $2,500 in 2 weeks.',cost:0,fx:{cash:2500,custMult:0,dur:1,rep:5}},
+    {label:'⏭️ Too much paperwork — skip it',note:'Miss out on free money.',cost:0,fx:{}},
+  ]},
+  {id:'downturn',trigger:{type:'story',day:60},repeatable:false,
+   emoji:'📉',cat:'Economy',title:'Singapore Economic Slowdown',speaker:'Straits Times headline',
+   narrative:'"Singapore economy contracts 1.8% in Q3. Consumer spending down across board. Your lunch crowd is noticeably thinner this week. Customers asking if you have anything cheaper."',
+   choices:[
+    {label:'💲 Lower price to $1.20 — value positioning',note:'More volume, less margin. Keep cash flowing.',cost:0,fx:{_priceSet:1.20,sat:8,rep:4}},
+    {label:'🎁 Bundle: kopi + toast for $2.20',note:'$50 setup. Value perception improves. Morale up.',cost:50,fx:{sat:10,rep:8,custBonus:15,dur:21}},
+    {label:'🛡️ Hold firm — quality speaks for itself',note:'Lose some customers. Quality regulars stay.',cost:0,fx:{custMult:0.85,dur:21,rep:5}},
+  ]},
+  {id:'rain',trigger:{type:'random',prob:0.05,minDay:1},repeatable:true,
+   emoji:'🌧️',cat:'Weather',title:'Monsoon Week',speaker:'NEA weather alert',
+   narrative:'"Heavy rain forecast for the next 5 days. Expect flooding in low-lying areas. Your open-air hawker centre means footfall will drop significantly when it rains heavily."',
+   choices:[
+    {label:'☔ Set up tent awning for customers',note:'$300 one-time. Reduces rain impact significantly.',cost:300,fx:{custMult:0.80,dur:5,sat:5}},
+    {label:'📱 Push delivery this week via WhatsApp group',note:'$30 promotion. Partial mitigation.',cost:30,fx:{custMult:0.60,dur:5}},
+    {label:'😤 Cannot control weather — just ride it out',note:'Full rain impact this week.',cost:0,fx:{custMult:0.42,dur:5}},
+  ]},
+  {id:'starstaff',trigger:{type:'random',prob:0.04,minDay:30},repeatable:false,
+   emoji:'⭐',cat:'HR',title:'Your Best Staff Wants More',speaker:'Ah Kow — senior staff',
+   narrative:'"Boss, I been working here almost 2 years already. I very hardworking you know, never late, never MC. But my friend at the coffeeshop downstairs offer me $200 more per month. Can you match?"',
+   choices:[
+    {label:'💰 Give raise — $200/month increase',note:'Retain your best worker. Worth it long term.',cost:0,fx:{morale:22,staffCostAdd:7}},
+    {label:'🎖️ Promote to shift supervisor — no pay rise',note:'Non-monetary reward. Buys you 6 months.',cost:0,fx:{morale:15}},
+    {label:'👋 Let him go — hire fresh staff instead',note:'$200 recruitment cost. 2-week settling period.',cost:200,fx:{morale:-25,custMult:0.85,dur:14}},
+  ]},
+  {id:'festival',trigger:{type:'random',prob:0.03,minDay:40},repeatable:false,
+   emoji:'🎪',cat:'Opportunity',title:'National Hawker Festival Invite',speaker:'National Heritage Board',
+   narrative:'"Dear Kopitiam Tauke, we would like to invite you to represent traditional Singapore kopi culture at the National Hawker Festival at Marina Bay Sands. 3-day event, 80,000 visitors expected. Booth fee: $600."',
+   choices:[
+    {label:'🎉 Join! Worth the investment.',note:'$600 booth fee. Massive reputation boost. 30 new regulars.',cost:600,fx:{rep:28,custBonus:22,dur:60,sat:8}},
+    {label:'📸 Send staff — you manage main stall',note:'$200. Smaller presence but keep operations running.',cost:200,fx:{rep:12,custBonus:10,dur:30}},
+    {label:'❌ Too risky — focus on main stall',note:'Miss the exposure.',cost:0,fx:{}},
+  ]},
+  {id:'rent',trigger:{type:'story',day:75},repeatable:false,
+   emoji:'🏠',cat:'Operations',title:'Rental Increase Notice',speaker:'Letter from Hawker Centre Management',
+   narrative:'"Dear Stall Holder, please be informed that your monthly stall rental will be revised upward by 20% effective next month. The new monthly rent will be $960. Please acknowledge receipt."',
+   choices:[
+    {label:'😤 Accept and absorb — business must go on',note:'Permanent rent increase. Profit margin tightens.',cost:0,fx:{_rentMod:0.20}},
+    {label:'🗣️ Negotiate with management',note:'Effort cost. Best case: 10% increase only.',cost:0,fx:{_rentMod:0.10,morale:5}},
+    {label:'🔍 Explore alternative locations',note:'$400 agent fees. 3-week disruption. Potential savings.',cost:400,fx:{custMult:0.40,dur:21,rep:-5}},
+  ]},
+  {id:'grab',trigger:{type:'story',day:50},repeatable:false,
+   emoji:'🛵',cat:'Partnership',title:'Grab Food Partnership Offer',speaker:'Grab Business Development',
+   narrative:'"Hi, I\'m reaching out on behalf of Grab Food. We\'d love to onboard your kopitiam. Our platform reaches 2M users in Singapore. Average hawker partner gets 40 extra orders/day. Our standard commission is 30%."',
+   choices:[
+    {label:'✅ Join Grab Food — standard 30% commission',note:'40 extra orders/day. Net after commission: +$42/day.',cost:0,fx:{custBonus:40,profitMod:-0.08,dur:999,rep:8}},
+    {label:'🤝 Negotiate — ask for 25% commission',note:'30 extra orders/day. Slightly better margin.',cost:0,fx:{custBonus:30,profitMod:-0.05,dur:999,rep:5}},
+    {label:'❌ No thank you — walk-in customers only',note:'Keep full margin. Miss delivery market.',cost:0,fx:{rep:5,sat:3}},
+  ]},
+  {id:'badreview',trigger:{type:'random',prob:0.04,minDay:10},repeatable:true,
+   emoji:'⭐',cat:'Reputation',title:'Viral Negative Google Review',speaker:'Google Reviews notification',
+   narrative:'"1-star review: Waited 30 mins for kopi. Uncle very rude when I asked how long more. Coffee taste like dirty water. Never coming back. Told all my friends to avoid." — This post has 340 likes and 87 comments.',
+   choices:[
+    {label:'✍️ Respond professionally, offer free kopi',note:'$20 goodwill. Shows you care. Reputation partially restored.',cost:20,fx:{rep:-6,sat:4}},
+    {label:'🔍 Investigate — is any of it true?',note:'Honest assessment. Staff briefed. Slow improvement.',cost:0,fx:{rep:-10,morale:-5,sat:5}},
+    {label:'🙈 Ignore — one bad review means nothing',note:'Problem festers online. Reputation hits.',cost:0,fx:{rep:-18,sat:-5}},
+  ]},
+  {id:'loyalty',trigger:{type:'random',prob:0.03,minDay:25},repeatable:false,
+   emoji:'💳',cat:'Marketing',title:'Start a Loyalty Program?',speaker:'Your own idea',
+   narrative:'You notice the bakery next door just launched a stamp card — buy 9, get 1 free. Your regulars are asking if you have something similar. Could this retain more customers?',
+   choices:[
+    {label:'💳 Launch physical stamp card ($180 printing)',note:'Every 9th kopi free. Strong retention.',cost:180,fx:{sat:14,rep:8,custBonus:14,dur:999}},
+    {label:'📱 Digital loyalty via WhatsApp broadcast',note:'$40 setup. Slightly less sticky but lower cost.',cost:40,fx:{sat:10,rep:5,custBonus:8,dur:999}},
+    {label:'😊 Personal touch is enough',note:'You know your regulars by name. No program needed.',cost:0,fx:{morale:5}},
+  ]},
+  {id:'reno',trigger:{type:'random',prob:0.025,minDay:30},repeatable:false,
+   emoji:'🏗️',cat:'Operations',title:'Hawker Centre Renovation',speaker:'NEA notice board',
+   narrative:'"All stalls: The hawker centre will undergo upgrading works for 3 weeks. Stalls must close during this period. Compensation from HDB: $800. Works begin next Monday."',
+   choices:[
+    {label:'✅ Use time wisely — staff training + equipment clean',note:'Compensation $800. Come back stronger.',cost:0,fx:{cash:800,morale:18,custMult:0,dur:21,sat:5}},
+    {label:'🛒 Use closure to buy better equipment ($1,200)',note:'Compensation $800 net. Better efficiency after.',cost:1200,fx:{cash:800,morale:12,custMult:0,dur:21,custBonus:10,_dur2:999}},
+  ]},
+  {id:'cny',trigger:{type:'story',day:35},repeatable:false,
+   emoji:'🧧',cat:'Seasonal',title:'Chinese New Year Rush',speaker:'Calendar — your phone',
+   narrative:'Chinese New Year is 5 days away! Traditionally a boon for kopi business — office parties, family outings, festive mood. But all your staff want time off to be with family. What do you do?',
+   choices:[
+    {label:'💰 Double pay — keep everyone working all 5 days',note:'Staff morale hit but huge revenue boost.',cost:0,fx:{custBonus:55,dur:5,morale:-18,profitMod:-0.15}},
+    {label:'🎁 Give 2 days off — skeleton crew rest of time',note:'Balanced. Staff happy. Partial revenue.',cost:0,fx:{custMult:0.55,dur:2,morale:20,custBonus:30,_dur2:3}},
+    {label:'📅 Pre-sell CNY gift sets (kopi + snacks)',note:'$100 setup. $600 in advance orders.',cost:100,fx:{cash:600,rep:10,sat:8}},
+  ]},
+  {id:'expand2',trigger:{type:'threshold',cash:15000},repeatable:false,
+   emoji:'🏪',cat:'Expansion',title:'Open Branch 2?',speaker:'Property agent — SMS',
+   narrative:'"Hi, I have a stall available at Tampines Central hawker centre. Very high footfall. $800/month rent. Setup cost: $12,000. I have another interested party so please let me know by end of week."',
+   choices:[
+    {label:'🚀 Open Branch 2! Invest $12,000',note:'14 days setup. Branch 2 earns ~$80/day profit after.',cost:12000,fx:{_newBranch:2}},
+    {label:'📊 Not yet — build more reserves first',note:'Wait until cash is stronger.',cost:0,fx:{}},
+  ]},
+  {id:'expand3',trigger:{type:'threshold',cash:40000,branches:2},repeatable:false,
+   emoji:'🏪',cat:'Expansion',title:'Open Branch 3?',speaker:'Your own network',
+   narrative:'"Your Branch 2 manager calls: Boss, I heard the stall at Bedok North is closing. The uncle retiring. Good location, near MRT. $15,000 takeover. Move fast."',
+   choices:[
+    {label:'🚀 Open Branch 3! Invest $15,000',note:'Branch 3 earns ~$120/day profit after setup.',cost:15000,fx:{_newBranch:3}},
+    {label:'📊 Not ready — focus on current branches',cost:0,fx:{}},
+  ]},
+  {id:'expand4',trigger:{type:'threshold',cash:100000,branches:3},repeatable:false,
+   emoji:'🏪',cat:'Expansion',title:'Open Branch 4?',speaker:'Brand partnership offer',
+   narrative:'"Your reputation has reached far. A mall developer offers you a full shopfront at Jurong East mall. $25,000 fit-out. $1,800/month rent. But the exposure — thousands of visitors per day."',
+   choices:[
+    {label:'🚀 Open Branch 4 — mall location!',note:'Higher costs but much higher volume. $200/day profit.',cost:25000,fx:{_newBranch:4}},
+    {label:'📊 Too risky — stick to hawker centres',cost:0,fx:{}},
+  ]},
+  {id:'expand5',trigger:{type:'threshold',cash:250000,branches:4},repeatable:false,
+   emoji:'🏪',cat:'Expansion',title:'Final Branch — The EMPIRE Awaits',speaker:'Media interview request',
+   narrative:'"CNA Lifestyle wants to do a feature: \'From one kopitiam stall to 5 locations\'. They ask: Are you opening a 5th branch? You look at your bank balance. You think of your grandfather. It\'s time."',
+   choices:[
+    {label:'👑 Open Branch 5 — complete the empire!',note:'$35,000 investment. 300 cups/day. The final step.',cost:35000,fx:{_newBranch:5}},
+    {label:'🤔 Not quite yet',cost:0,fx:{}},
+  ]},
+];
 
-// ── IndexedDB ───────────────────────────────────────────────────────────────
-let db=null;
-
-function initDB(){
-  return new Promise((resolve,reject)=>{
-    const req=indexedDB.open('kokDB',1);
-    req.onupgradeneeded=(e)=>{
-      const d=e.target.result;
-      if(!d.objectStoreNames.contains('save')){  // M7
-        d.createObjectStore('save',{keyPath:'id'});
-      }
-    };
-    req.onsuccess=(e)=>{db=e.target.result;resolve();};
-    req.onerror=()=>reject(req.error);
-  });
-}
-
-function saveGame(){
-  if(!db)return Promise.resolve();
-  gs.savedAt=new Date().toISOString();
-  const data={
-    id:'game',
-    money:gs.money, total:gs.total,
-    owned:{...gs.owned},
-    bought:[...gs.bought],
-    clickMulti:gs.clickMulti, cpsMulti:gs.cpsMulti,
-    lastMs:gs.lastMs,
-    playTime:gs.playTime,
-    highCps:gs.highCps,
-    savedAt:gs.savedAt,
+// ── State ─────────────────────────────────────────────────────────────────────
+function defaultState(){
+  return {
+    day:1, phase:'morning',
+    cash:5000, totalRevenue:0, totalProfit:0,
+    satisfaction:65, reputation:45, staffMorale:78, beanQuality:48,
+    beanSource:'malaysia', price:1.50, hours:'standard',
+    staffCount:1, extraRentMod:0,
+    branches:1, branchIncome:0,
+    firedEvents:[], activeEffects:[],
+    pendingEvent:null, lastResults:null,
+    profitHistory:[],
+    won:false, lost:false,
+    geminiKey:'', geminiModel:'gemini-2.5-flash',
+    savedAt:null,
   };
-  return new Promise((resolve)=>{
-    const tx=db.transaction('save','readwrite');
-    tx.objectStore('save').put(data);
-    tx.oncomplete=resolve;
-    tx.onerror=resolve;
+}
+let gs = defaultState();
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function fmt(n){
+  if(n>=1e6)return '$'+(n/1e6).toFixed(2)+'M';
+  if(n>=1e3)return '$'+(n/1e3).toFixed(1)+'K';
+  if(n<0)return '-$'+Math.abs(Math.round(n));
+  return '$'+Math.round(n);
+}
+function fmtP(n){return (n>=0?'+':'')+fmt(n);}
+function fmtT(s){
+  const h=Math.floor(s/3600),m=Math.floor((s%3600)/60);
+  if(h>0)return h+'h '+m+'m'; return m+'m '+Math.floor(s%60)+'s';
+}
+function clamp(v,lo,hi){return Math.max(lo,Math.min(hi,v));}
+
+// ── IDB ───────────────────────────────────────────────────────────────────────
+let db=null;
+function initDB(){
+  return new Promise((res,rej)=>{
+    const r=indexedDB.open('koptycoonDB',1);
+    r.onupgradeneeded=e=>{
+      const d=e.target.result;
+      if(!d.objectStoreNames.contains('save')) d.createObjectStore('save',{keyPath:'id'}); // M7
+    };
+    r.onsuccess=e=>{db=e.target.result;res();};
+    r.onerror=()=>rej(r.error);
   });
 }
-
+function saveGame(){
+  if(!db)return;
+  gs.savedAt=new Date().toISOString();
+  const data={id:'game',...gs,firedEvents:[...gs.firedEvents]};
+  const tx=db.transaction('save','readwrite');
+  tx.objectStore('save').put(data);
+}
 function loadGame(){
   if(!db)return Promise.resolve();
-  return new Promise((resolve)=>{
-    const tx=db.transaction('save','readonly');
-    const req=tx.objectStore('save').get('game');
-    req.onsuccess=()=>{
-      const d=req.result;
+  return new Promise(res=>{
+    const r=db.transaction('save','readonly').objectStore('save').get('game');
+    r.onsuccess=()=>{
+      const d=r.result;
       if(d){
-        gs.money      =d.money||0;
-        gs.total      =d.total||0;
-        gs.owned      =d.owned||{};
-        gs.bought     =new Set(d.bought||[]);
-        gs.clickMulti =d.clickMulti||1;
-        gs.cpsMulti   =d.cpsMulti||1;
-        gs.lastMs     =d.lastMs||-1;
-        gs.playTime   =d.playTime||0;
-        gs.highCps    =d.highCps||0;
-        gs.savedAt    =d.savedAt||null;
+        Object.assign(gs,d);
+        gs.firedEvents=new Set(d.firedEvents||[]);
       }
-      resolve();
+      res();
     };
-    req.onerror=resolve;
+    r.onerror=res;
   });
 }
 
-function resetGame(){
-  if(!confirm('Start a new game? Your current progress will be lost.'))return;
-  gs.money=0;gs.total=0;gs.owned={};gs.bought=new Set();
-  gs.clickMulti=1;gs.cpsMulti=1;gs.lastMs=-1;
-  gs.playTime=0;gs.highCps=0;gs.savedAt=null;
+// ── Revenue calculation ───────────────────────────────────────────────────────
+function calcDay(){
+  const bean=BEANS[gs.beanSource];
+  const priceOpt=PRICES.find(p=>p.v===gs.price)||PRICES[1];
+  const hoursOpt=HOURS.find(h=>h.v===gs.hours)||HOURS[0];
+  const BASE=200;
+  const satMult=0.50+(gs.satisfaction/100)*0.50;
+  const repMult=0.45+(gs.reputation/100)*0.65;
+  const moraleMult=gs.staffMorale<50?0.82:gs.staffMorale>78?1.08:1.0;
+  const capacity=120+(gs.staffCount*80);
+  let cMult=priceOpt.custMult*hoursOpt.custMult;
+  let cBonus=0;
+  let pMod=1.0;
+  for(const fx of gs.activeEffects){
+    if(fx.type==='custMult')  cMult*=fx.v;
+    if(fx.type==='custBonus') cBonus+=fx.v;
+    if(fx.type==='profitMod') pMod*=(1+fx.v);
+  }
+  const raw=BASE*satMult*repMult*moraleMult*cMult+cBonus;
+  const customers=Math.min(capacity,Math.max(0,Math.floor(raw)));
+  const revenue=customers*gs.price;
+  const beanCost=customers*bean.cost;
+  const staffCost=gs.staffCount*70+hoursOpt.extraCost;
+  const rent=27*(1+gs.extraRentMod);
+  const gross=revenue-beanCost-staffCost-rent;
+  const branchInc=gs.branchIncome||0;
+  const profit=(gross+branchInc)*pMod;
+  return {customers,revenue,beanCost,staffCost,rent,gross,branchInc,profit};
+}
+
+// ── Apply event choice ────────────────────────────────────────────────────────
+function applyChoice(choice){
+  const fx=choice.fx||{};
+  if(fx.cost>0)gs.cash-=fx.cost;  // legacy cost field in choice root
+  if(choice.cost)gs.cash-=choice.cost;
+  if(fx.cash)gs.cash+=fx.cash;
+  if(fx.sat)    gs.satisfaction=clamp(gs.satisfaction+fx.sat,0,100);
+  if(fx.rep)    gs.reputation=clamp(gs.reputation+fx.rep,0,100);
+  if(fx.morale) gs.staffMorale=clamp(gs.staffMorale+fx.morale,0,100);
+  if(fx.staff)  gs.staffCount=Math.max(1,gs.staffCount+(fx.staff||0));
+  if(fx.staffCostAdd) gs.staffCostAdd=(gs.staffCostAdd||0)+(fx.staffCostAdd*30); // monthly
+  if(fx.custMult!==undefined && fx.dur) addEffect('custMult',fx.custMult,fx.dur);
+  if(fx.custBonus && fx.dur) addEffect('custBonus',fx.custBonus,fx.dur);
+  else if(fx.custBonus) addEffect('custBonus',fx.custBonus,999);
+  if(fx.profitMod && fx.dur) addEffect('profitMod',fx.profitMod,fx.dur);
+  else if(fx.profitMod) addEffect('profitMod',fx.profitMod,999);
+  if(fx._rentMod) gs.extraRentMod=clamp((gs.extraRentMod||0)+fx._rentMod,0,1);
+  if(fx._priceSet) gs.price=fx._priceSet;
+  if(fx._priceAdd) gs.price=clamp(gs.price+(fx._priceAdd||0),1.20,2.00);
+  if(fx._beanDowngrade){
+    const order=['malaysia','indonesia','colombia','roastery'];
+    const i=order.indexOf(gs.beanSource);
+    if(i>0)gs.beanSource=order[i-1];
+    gs.beanQuality=BEANS[gs.beanSource].quality;
+  }
+  if(fx._gamble==='inspector'){
+    if(Math.random()<0.60){gs.cash-=800;showToast('⚠️','NEA fined you $800. Should have cleaned up lah.');}
+    else{showToast('😅','Lucky! Inspector gave you a warning only.');}
+  }
+  if(fx._gamble==='pipe'){addEffect('_pipeLeak',true,Math.floor(7+Math.random()*7));}
+  if(fx._newBranch){openBranch(fx._newBranch);}
+}
+function addEffect(type,v,dur){
+  gs.activeEffects.push({type,v,daysLeft:dur});
+}
+
+// ── Branch management ─────────────────────────────────────────────────────────
+function openBranch(n){
+  gs.branches=n;
+  const incomes={2:80,3:120,4:200,5:350};
+  gs.branchIncome=(gs.branchIncome||0)+(incomes[n]||100);
+  showToast('🏪',`Branch ${n} opening in 14 days! Exciting times!`);
+  addEffect('custMult',0.5,3); // distraction during setup
+}
+
+// ── Event selection ───────────────────────────────────────────────────────────
+function selectEvent(){
+  // Story events (specific day)
+  for(const ev of EVENTS){
+    if(ev.trigger.type==='story' && ev.trigger.day===gs.day && !gs.firedEvents.has(ev.id)){
+      return ev;
+    }
+  }
+  // Threshold events (cash + branches)
+  for(const ev of EVENTS){
+    if(ev.trigger.type==='threshold' && !gs.firedEvents.has(ev.id)){
+      const cashOk = !ev.trigger.cash || gs.cash>=ev.trigger.cash;
+      const branchOk = !ev.trigger.branches || gs.branches>=ev.trigger.branches;
+      if(cashOk && branchOk) return ev;
+    }
+  }
+  // Random events (30% chance per day)
+  if(Math.random()>0.30) return null;
+  const eligible=EVENTS.filter(ev=>
+    ev.trigger.type==='random' &&
+    (!ev.trigger.minDay || gs.day>=ev.trigger.minDay) &&
+    (ev.repeatable || !gs.firedEvents.has(ev.id))
+  );
+  if(!eligible.length) return null;
+  const total=eligible.reduce((s,ev)=>s+(ev.trigger.prob||0.03),0);
+  let r=Math.random()*total;
+  for(const ev of eligible){r-=(ev.trigger.prob||0.03);if(r<=0)return ev;}
+  return eligible[Math.floor(Math.random()*eligible.length)];
+}
+
+// ── Day-end processing ────────────────────────────────────────────────────────
+function processEndDay(fromEvent=false){
+  const res=calcDay();
+  gs.cash+=res.profit;
+  gs.totalRevenue+=res.revenue;
+  gs.totalProfit+=res.profit;
+  gs.profitHistory.push(res.profit);
+  if(gs.profitHistory.length>30)gs.profitHistory.shift();
+  gs.lastResults=res;
+  // Stat drift
+  const bean=BEANS[gs.beanSource];
+  const priceOpt=PRICES.find(p=>p.v===gs.price)||PRICES[1];
+  gs.satisfaction=clamp(gs.satisfaction+bean.satGrow*0.4+priceOpt.satMod*0.2-0.2,5,100);
+  gs.reputation=clamp(gs.reputation+bean.repGrow*0.3+0.15,0,100);
+  gs.beanQuality=clamp(bean.quality*0.3+gs.beanQuality*0.7,0,100); // moving average
+  const hoursOpt=HOURS.find(h=>h.v===gs.hours)||HOURS[0];
+  gs.staffMorale=clamp(gs.staffMorale+hoursOpt.moraleMod*0.25+0.3,0,100);
+  // Stockout check
+  if(gs.beanSource==='roastery'&&Math.random()<0.15){
+    gs.satisfaction=clamp(gs.satisfaction-10,5,100);
+    showToast('⚠️','Roastery stock ran out! Some customers turned away!');
+  }
+  // Pipe leak gamble resolve
+  const leak=gs.activeEffects.find(f=>f.type==='_pipeLeak');
+  if(leak&&Math.random()<0.3){
+    gs.cash-=1200;
+    gs.activeEffects=gs.activeEffects.filter(f=>f!==leak);
+    showToast('💧','Patch failed! Emergency plumber: $1,200!');
+  }
+  // Decrement effects
+  gs.activeEffects=gs.activeEffects.map(f=>({...f,daysLeft:f.daysLeft-1})).filter(f=>f.daysLeft>0);
+  gs.phase='endday';
   saveGame();
-  renderList();
-  renderUI();
+  render();
 }
 
-// ── Offline earnings ─────────────────────────────────────────────────────────
-function calcOfflineEarnings(savedIso){
-  if(!savedIso)return 0;
-  const seconds=Math.min((Date.now()-new Date(savedIso))/1000,7200); // max 2h
-  return calcCps()*seconds;
-}
-
-// ── Game actions ─────────────────────────────────────────────────────────────
-function brewKopi(e){
-  e.preventDefault();
-  const v=clickVal();
-  gs.money+=v;gs.total+=v;
-  const btn=document.getElementById('cup-btn');
-  const rect=btn.getBoundingClientRect();
-  const cx=e.touches?e.touches[0].clientX:e.clientX;
-  const cy=e.touches?e.touches[0].clientY:e.clientY;
-  const el=document.createElement('div');
-  el.className='float-txt';
-  el.style.left=(cx-rect.left-20)+'px';
-  el.style.top =(cy-rect.top-10)+'px';
-  el.textContent='+$'+fmt(v);
-  document.getElementById('floats').appendChild(el);
-  setTimeout(()=>{try{el.parentNode&&el.parentNode.removeChild(el);}catch(ex){}},920);
-  renderUI();
-}
-
-function buyItem(itemId){
-  const item=ITEMS.find(it=>it.id===itemId);
-  if(!item)return;
-  const cost=costFor(item);
-  if(gs.money<cost)return;
-  gs.money-=cost;
-  gs.owned[itemId]=(gs.owned[itemId]||0)+1;
-  renderList();
-  renderUI();
-}
-
-function buyUpgrade(upgId){
-  const upg=UPGRADES.find(u=>u.id===upgId);
-  if(!upg||gs.bought.has(upgId)||gs.money<upg.cost)return;
-  gs.money-=upg.cost;
-  gs.bought.add(upgId);
-  gs.clickMulti*=upg.cm;
-  gs.cpsMulti  *=upg.pm;
-  renderList();
-  renderUI();
-}
-
-function switchTab(name){
-  gs.tab=name;
-  document.querySelectorAll('.tab-btn').forEach(b=>{
-    b.classList.toggle('active',b.dataset.tab===name);
-  });
-  renderList();
-}
-
-// ── Toast system ─────────────────────────────────────────────────────────────
-let msTimeout=null;
-
-function showToast(toastId,emoji,msg){
-  const el=document.getElementById(toastId);
-  el.innerHTML=`<span style="font-size:20px;">${emoji}</span><span style="margin-left:8px;">${msg}</span>`;
-  el.style.animation='none';
-  void el.offsetWidth;
-  el.classList.add('show');
-  el.style.animation='';
-  if(msTimeout)clearTimeout(msTimeout);
-  msTimeout=setTimeout(()=>el.classList.remove('show'),3700);
-}
-
-function checkMilestone(){
-  const idx=MILESTONES.reduce((b,m,i)=>gs.total>=m.at?i:b,-1);
-  if(idx>gs.lastMs){
-    gs.lastMs=idx;
-    showToast('ms-toast',MILESTONES[idx].emoji,MILESTONES[idx].msg);
+// ── Footer action dispatcher ──────────────────────────────────────────────────
+function footerAction(){
+  if(gs.phase==='morning'){
+    // Check for event
+    const ev=selectEvent();
+    if(ev){
+      gs.firedEvents.add(ev.id);
+      gs.pendingEvent=ev;
+      gs.phase='event';
+      saveGame();
+      render();
+    }else{
+      processEndDay();
+    }
+  }else if(gs.phase==='endday'){
+    gs.day++;
+    checkWinLose();
+    gs.phase='morning';
+    saveGame();
+    render();
   }
 }
-
-// ── Render ───────────────────────────────────────────────────────────────────
-function renderUI(){
-  const cps=calcCps();
-  const cv =clickVal();
-  const tot=totalOwned();
-  if(cps>gs.highCps)gs.highCps=cps;
-  document.getElementById('money-display').textContent='$'+fmt(gs.money);
-  document.getElementById('cps-display').textContent  ='$'+fmt(cps)+'/sec';
-  const cvEl=document.getElementById('click-val');
-  if(rushOn){
-    cvEl.textContent='⚡ +$'+fmt(cv)+' per tap  (10× RUSH!)';
-    cvEl.className='rush';
-  }else{
-    cvEl.textContent='+$'+fmt(cv)+' per tap';
-    cvEl.className='';
-  }
-  document.getElementById('chip-items').textContent='🏪 '+tot+' item'+(tot===1?'':'s');
-  document.getElementById('chip-total').textContent='💰 $'+fmt(gs.total)+' earned';
+function chooseOption(idx){
+  if(!gs.pendingEvent)return;
+  applyChoice(gs.pendingEvent.choices[idx]);
+  gs.pendingEvent=null;
+  processEndDay(true);
 }
 
-function renderList(){
-  const list=document.getElementById('list');
-  if(gs.tab==='items'){
-    list.innerHTML=ITEMS.map(item=>{
-      const cnt  =gs.owned[item.id]||0;
-      const cost =costFor(item);
-      const can  =gs.money>=cost;
-      const prod =cnt>0?fmt(item.baseCps*cnt*gs.cpsMulti)+'/s total':fmt(item.baseCps)+'/s ea';
-      const desc =item.desc+' · '+prod;
-      return `<div class="item-card${can?'':(cnt>0?' owned dim':' dim')}${cnt>0&&can?' owned':''}"
-        onclick="${can?`buyItem('${item.id}')`:''}" >
-        <div class="card-emoji">${item.emoji}</div>
-        <div class="card-mid">
-          <div class="card-name">${item.name}</div>
-          <div class="card-desc">${desc}</div>
-        </div>
-        <div class="card-right">
-          <div class="card-cost ${can?'can':'cant'}">$${fmt(cost)}</div>
-          ${cnt>0?`<div class="card-count">×${cnt}</div>`:''}
-        </div>
-      </div>`;
-    }).join('');
-
-  }else if(gs.tab==='upgrades'){
-    list.innerHTML=UPGRADES.map(upg=>{
-      const bought=gs.bought.has(upg.id);
-      const can   =!bought&&gs.money>=upg.cost;
-      return `<div class="item-card${(bought||!can)?' dim':''}"
-        onclick="${can?`buyUpgrade('${upg.id}')`:''}" >
-        <div class="card-emoji">${bought?'✅':upg.emoji}</div>
-        <div class="card-mid">
-          <div class="card-name">${upg.name}</div>
-          <div class="card-desc">${upg.desc}</div>
-        </div>
-        <div class="card-right">
-          ${bought
-            ?'<div style="font-size:11px;color:#5a4030;">OWNED</div>'
-            :`<div class="card-cost ${can?'can':'cant'}">$${fmt(upg.cost)}</div>`}
-        </div>
-      </div>`;
-    }).join('');
-
-  }else if(gs.tab==='stats'){
-    renderStats();
-  }else{
-    renderSettings();
+// ── Win / Lose check ──────────────────────────────────────────────────────────
+function checkWinLose(){
+  if(gs.cash<0){
+    gs.lost=true;
+    const box=document.getElementById('end-box');
+    box.innerHTML=`<div class="end-emoji">😢</div>
+      <div class="end-title">BANKRUPT</div>
+      <div class="end-sub">You ran out of cash on Day ${gs.day}. The kopitiam had to close. Even your grandfather's secret recipe couldn't save it this time.</div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:16px;">💡 Tip: Buy cheaper beans early. Don't hire staff faster than revenue grows.</div>
+      <button class="end-btn" onclick="startFresh()">Try Again</button>`;
+    document.getElementById('overlay-end').classList.add('show');
+    return;
+  }
+  const avg30=gs.profitHistory.length>=30
+    ?gs.profitHistory.reduce((a,b)=>a+b,0)/gs.profitHistory.length:0;
+  if(gs.branches>=5 && avg30>=500){
+    gs.won=true;
+    const box=document.getElementById('end-box');
+    box.innerHTML=`<div class="end-emoji">👑</div>
+      <div class="end-title">KOPI O KING!</div>
+      <div class="end-sub">5 branches. ${fmt(gs.totalRevenue)} total revenue. ${gs.day} days of hustle. Your grandfather would be proud.</div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:16px;">Share your score!</div>
+      <button class="end-btn" onclick="startFresh()">Play Again</button>`;
+    document.getElementById('overlay-end').classList.add('show');
   }
 }
-
-function renderStats(){
-  const cps=calcCps();
-  document.getElementById('list').innerHTML=`
-    <div class="stats-grid">
-      <div class="stat-box"><div class="sl">Total earned</div><div class="sv">$${fmt(gs.total)}</div></div>
-      <div class="stat-box"><div class="sl">Per second</div><div class="sv">$${fmt(cps)}/s</div></div>
-      <div class="stat-box"><div class="sl">Items owned</div><div class="sv">${totalOwned()}</div></div>
-      <div class="stat-box"><div class="sl">Upgrades</div><div class="sv">${gs.bought.size}/${UPGRADES.length}</div></div>
-      <div class="stat-box"><div class="sl">Best CPS ever</div><div class="sv">$${fmt(gs.highCps)}/s</div></div>
-      <div class="stat-box"><div class="sl">Play time</div><div class="sv">${fmtTime(gs.playTime)}</div></div>
-    </div>
-    <div class="save-row">
-      <div>
-        <div class="save-lbl">Auto-saves every 10 seconds</div>
-        <div id="save-time">${fmtSaved(gs.savedAt)}</div>
-      </div>
-      <button class="reset-btn" onclick="resetGame()">New Game</button>
-    </div>
-    <div class="stats-tip">
-      Tip: the Michelin Star upgrade (⬆️ tab) multiplies everything ×5. Save up and go for it! 🌟
-    </div>
-    <button class="replay-btn" onclick="openOnboard()">🎬 Replay intro</button>
-    <a href="https://ko-fi.com/leanlifestyle" target="_blank" rel="noopener"
-       style="display:flex;align-items:center;justify-content:center;gap:8px;
-              margin-top:8px;padding:11px 16px;border-radius:8px;
-              background:#1a0a04;border:1px solid #7c3a00;
-              color:#fbbf24;font-size:13px;font-weight:600;
-              text-decoration:none;transition:background .15s;"
-       onmouseover="this.style.background='#2d1a08'"
-       onmouseout ="this.style.background='#1a0a04'">
-      <span style="font-size:18px;">☕</span>
-      <span>Buy me a kopi on Ko-fi</span>
-    </a>`;
+function startFresh(){
+  const key=gs.geminiKey, model=gs.geminiModel;
+  gs=defaultState();
+  gs.geminiKey=key; gs.geminiModel=model;
+  gs.firedEvents=new Set();
+  document.getElementById('overlay-end').classList.remove('show');
+  saveGame(); render();
 }
 
-function renderSettings(){
-  document.getElementById('list').innerHTML=`
-    <div class="how-section">
-      <div class="how-head">📖 How to Play</div>
-      <div class="how-row"><div class="hw-ic">☕</div><div class="hw-tx"><b>Tap the cup</b> to earn money. Tap power grows as you buy upgrades.</div></div>
-      <div class="how-row"><div class="hw-ic">🍽️</div><div class="hw-tx"><b>Buy Menu items</b> (Menu tab) to earn $/sec passively — income flows even when you stop tapping.</div></div>
-      <div class="how-row"><div class="hw-ic">⬆️</div><div class="hw-tx"><b>Buy Upgrades</b> to multiply both tap power and $/sec. Stack them — effects are multiplicative.</div></div>
-      <div class="how-row"><div class="hw-ic">⚡</div><div class="hw-tx"><b>Rush Hour</b> triggers every few minutes. Your tap earns <b>10× more for 30 seconds</b> — tap as fast as you can!</div></div>
-      <div class="how-row"><div class="hw-ic">💾</div><div class="hw-tx"><b>Auto-saves</b> every 10 seconds. Come back later — you earn passively while away (up to 2h).</div></div>
-    </div>
-    <div class="how-section">
-      <div class="how-head">💡 Strategy Tips</div>
-      <div class="how-row"><div class="hw-ic">1️⃣</div><div class="hw-tx">Buy 10–15 Kopi O first to build a passive income base. Cheap items fund expensive ones fast.</div></div>
-      <div class="how-row"><div class="hw-ic">2️⃣</div><div class="hw-tx">Grab <b>Better Ladle</b> and <b>Regular Customers</b> early — the biggest bang for your early dollars.</div></div>
-      <div class="how-row"><div class="hw-ic">3️⃣</div><div class="hw-tx">Tap hard during <b>Rush Hour</b>. A 30-second burst at 10× can earn more than minutes of idle income.</div></div>
-      <div class="how-row"><div class="hw-ic">🏆</div><div class="hw-tx">Goal: unlock <b>Mao Shan Wang</b> + all 7 upgrades, especially the <b>Michelin Star</b> (×5 everything)!</div></div>
-    </div>
-    <div class="how-section">
-      <div class="how-head">⚙️ Options</div>
-      <button class="set-btn" style="margin-bottom:8px;" onclick="openOnboard()">🎬 &nbsp;Replay intro story</button>
-      <button class="set-btn danger" onclick="resetGame()">🔄 &nbsp;Start new game</button>
-    </div>`;
+// ── Toast ─────────────────────────────────────────────────────────────────────
+let toastTm=null;
+function showToast(emoji,msg){
+  const el=document.getElementById('toast');
+  el.innerHTML=`<span style="font-size:18px">${emoji}</span><span style="margin-left:6px">${msg}</span>`;
+  el.style.animation='none';void el.offsetWidth;
+  el.classList.add('show');el.style.animation='';
+  if(toastTm)clearTimeout(toastTm);
+  toastTm=setTimeout(()=>el.classList.remove('show'),3700);
 }
 
-// ── Rush Hour ─────────────────────────────────────────────────────────────────
-let rushOn=false,rushSecs=0,rushTimer=null;
-
-function startRush(){
-  if(rushOn)return;
-  rushOn=true;rushSecs=30;
-  document.getElementById('cup-btn').classList.add('rush');
-  const hint=document.getElementById('tap-hint');
-  if(hint){hint.textContent='⚡ RUSH HOUR! 30s!';hint.className='tap-hint rush';}
-  showToast('ms-toast','⚡','RUSH HOUR! Tap 10× faster — 30 seconds!');
-  rushTimer=setInterval(()=>{
-    rushSecs--;
-    const hint=document.getElementById('tap-hint');
-    if(hint&&rushOn)hint.textContent='⚡ RUSH HOUR! '+rushSecs+'s!';
-    if(rushSecs<=0){endRush();}
-  },1000);
+// ── Overlays ──────────────────────────────────────────────────────────────────
+function openOverlay(id){document.getElementById(id).classList.add('show');}
+function closeOverlay(id){document.getElementById(id).classList.remove('show');}
+function openSettings(){
+  document.getElementById('apikey-input').value=gs.geminiKey||'';
+  const opts=document.getElementById('model-opts');
+  opts.innerHTML=MODELS.map(m=>`<button class="model-opt${m===gs.geminiModel?' sel':''}" onclick="selectModel('${m}')">${m}</button>`).join('');
+  openOverlay('overlay-settings');
+}
+function selectModel(m){
+  gs.geminiModel=m;
+  document.querySelectorAll('.model-opt').forEach(b=>b.classList.toggle('sel',b.textContent===m));
+}
+function saveSettings(){
+  gs.geminiKey=document.getElementById('apikey-input').value.trim();
+  saveGame();closeOverlay('overlay-settings');
+  showToast('✅','Settings saved!');
 }
 
-function endRush(){
-  clearInterval(rushTimer);
-  rushOn=false;
-  document.getElementById('cup-btn').classList.remove('rush');
-  const hint=document.getElementById('tap-hint');
-  if(hint){hint.textContent='TAP TO BREW!';hint.className='tap-hint';}
-  showToast('ms-toast','😮','Rush hour over! Phew, good work uncle!');
-  scheduleRush();
-}
-
-function scheduleRush(){
-  // First event 3–5 minutes after game opens; subsequent events the same
-  const delay=(180+Math.random()*120)*1000;
-  setTimeout(startRush,delay);
-}
-let ticks=0;
-function tick(){
-  const earn=calcCps()/20;  // 50ms tick = 1/20 second
-  gs.money+=earn;
-  gs.total+=earn;
-  ticks++;
-  if(ticks%20===0)  gs.playTime++;         // every second
-  if(ticks%200===0) saveGame();            // every 10 seconds
-  if(ticks%4===0){                         // ~80ms render cadence
-    renderUI();
-    checkMilestone();
-    if(gs.tab==='stats')renderStats();
-    // settings is static — no live re-render needed
+// ── Gemini advisor ────────────────────────────────────────────────────────────
+async function askAdvisor(){
+  openOverlay('overlay-advisor');
+  document.getElementById('advisor-text').textContent='Uncle Ah Kow is thinking…';
+  if(!gs.geminiKey){
+    document.getElementById('advisor-text').textContent='Set your Gemini API key in ⚙️ Settings to unlock Uncle Ah Kow\'s advice!';
+    return;
   }
-}
+  const ev=gs.pendingEvent;
+  if(!ev)return;
+  const avg=gs.profitHistory.length?Math.round(gs.profitHistory.reduce((a,b)=>a+b,0)/gs.profitHistory.length):0;
+  const prompt=`You are Uncle Ah Kow, a 65-year-old seasoned kopitiam owner in Singapore. Your nephew just inherited your stall. You give brief, practical business advice in Singlish. Maximum 3 sentences. Be warm but direct about risk.
 
-// ── Connectivity ─────────────────────────────────────────────────────────────
-window.addEventListener('online', ()=>{
-  document.getElementById('offline-banner').style.display='none';
-});
-window.addEventListener('offline',()=>{
-  document.getElementById('offline-banner').style.display='block';
-});
+Current situation: Day ${gs.day}, Cash ${fmt(gs.cash)}, Average daily profit ${fmtP(avg)}, Satisfaction ${Math.round(gs.satisfaction)}/100, Staff morale ${Math.round(gs.staffMorale)}/100, Branches: ${gs.branches}.
 
-// ── Init ─────────────────────────────────────────────────────────────────────
-async function init(){
+Event: "${ev.title}" — ${ev.narrative}
+
+Options:
+${ev.choices.map((c,i)=>String.fromCharCode(65+i)+'. '+c.label).join('\n')}
+
+Give your honest advice on what to do.`;
   try{
-    await initDB();
-    await loadGame();
+    const url=`https://generativelanguage.googleapis.com/v1beta/models/${gs.geminiModel}:generateContent?key=${gs.geminiKey}`;
+    const resp=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{maxOutputTokens:180}})});
+    if(!resp.ok){
+      const code=resp.status;
+      document.getElementById('advisor-text').textContent=`API error ${code}. ${code===403?'Check your API key.':code===404?'Try a different model in Settings.':'Try again later.'}`;
+      return;
+    }
+    const data=await resp.json();
+    const text=data.candidates?.[0]?.content?.parts?.[0]?.text||'Uncle Ah Kow busy lah. Try again.';
+    document.getElementById('advisor-text').textContent=text;
   }catch(e){
-    // IDB unavailable — continue without save (private browsing etc.)
-  }
-
-  // Offline earnings
-  const oe=calcOfflineEarnings(gs.savedAt);
-  if(oe>10){
-    gs.money+=oe;
-    gs.total+=oe;
-    setTimeout(()=>{
-      showToast('oe-toast','💰','Welcome back! Earned $'+fmt(oe)+' while away');
-    },600);
-  }
-
-  // Attach click + touch events to cup
-  const cup=document.getElementById('cup-btn');
-  cup.addEventListener('click',brewKopi);
-  // touchstart for snappier mobile response
-  cup.addEventListener('touchstart',brewKopi,{passive:false});
-
-  renderUI();
-  renderList();
-  setInterval(tick,50);
-  scheduleRush(); // first Rush Hour event fires 3–5 min after load
-
-  // Show onboarding on first visit (M12: show once, localStorage flag)
-  if(!localStorage.getItem(OB_KEY)){
-    buildOnboarding();
-    document.getElementById('onboard').style.display='flex';
+    document.getElementById('advisor-text').textContent='Cannot reach Uncle Ah Kow. Check your internet connection.';
   }
 }
 
+// ── Render ────────────────────────────────────────────────────────────────────
+function render(){
+  renderHeader();
+  if(gs.phase==='morning') renderMorning();
+  else if(gs.phase==='event') renderEvent();
+  else if(gs.phase==='endday') renderEndDay();
+}
+
+function renderHeader(){
+  document.getElementById('day-tag').textContent=`Day ${gs.day} · ${gs.branches} Branch${gs.branches>1?'es':''}`;
+  const cashEl=document.getElementById('cash-display');
+  cashEl.textContent=fmt(gs.cash);
+  cashEl.className=gs.cash>=0?'pos':'neg';
+  const avg=gs.profitHistory.length?Math.round(gs.profitHistory.slice(-7).reduce((a,b)=>a+b,0)/Math.min(7,gs.profitHistory.length)):null;
+  document.getElementById('profit-display').textContent=avg!==null
+    ?`avg ${fmtP(avg)}/day (last 7)`:'first day — let\'s go!';
+}
+
+function bar(val,color){
+  return `<div class="met-bar-w"><div class="met-bar-f" style="width:${val}%;background:${color};"></div></div>`;
+}
+function delta(v){
+  if(!gs.lastResults)return'';
+  return v>=0?`<span class="met-delta pos">+${v.toFixed(1)}</span>`:`<span class="met-delta neg">${v.toFixed(1)}</span>`;
+}
+
+function renderMorning(){
+  const yest=gs.lastResults;
+  const metrics=`
+    <div class="section">
+      <div class="section-head"><span class="sh-title">📊 Stall Health</span><button style="background:transparent;border:none;color:var(--muted);font-size:11px;cursor:pointer;" onclick="openSettings()">⚙️ Settings</button><a href="https://ko-fi.com/leanlifestyle" target="_blank" rel="noopener" style="font-size:11px;color:var(--muted);text-decoration:none;">☕ Ko-fi</a></div>
+      <div class="section-body" style="display:flex;flex-direction:column;gap:2px;">
+        <div class="metric-row"><span class="met-icon">😊</span><span class="met-label">Satisfaction</span>${bar(gs.satisfaction,'#22c55e')}<span class="met-val">${Math.round(gs.satisfaction)}</span></div>
+        <div class="metric-row"><span class="met-icon">⭐</span><span class="met-label">Reputation</span>${bar(gs.reputation,'#f59e0b')}<span class="met-val">${Math.round(gs.reputation)}</span></div>
+        <div class="metric-row"><span class="met-icon">👷</span><span class="met-label">Staff Morale</span>${bar(gs.staffMorale,'#60a5fa')}<span class="met-val">${Math.round(gs.staffMorale)}</span></div>
+        <div class="metric-row"><span class="met-icon">🫘</span><span class="met-label">Bean Quality</span>${bar(gs.beanQuality,'#a3e635')}<span class="met-val">${Math.round(gs.beanQuality)}</span></div>
+      </div>
+    </div>`;
+
+  const beanOpts=Object.entries(BEANS).map(([k,b])=>`
+    <button class="dec-opt${gs.beanSource===k?' sel':''}" onclick="gs.beanSource='${k}';render();">
+      <div class="opt-main">${b.emoji} ${b.label}</div>
+      <div class="opt-sub">$${b.cost}/cup · Q${b.quality}</div>
+    </button>`).join('');
+  const priceOpts=PRICES.map(p=>`
+    <button class="dec-opt${gs.price===p.v?' sel':''}" onclick="gs.price=${p.v};render();">
+      <div class="opt-main">${p.label}</div>
+      <div class="opt-sub">${p.desc}</div>
+    </button>`).join('');
+  const hoursOpts=HOURS.map(h=>`
+    <button class="dec-opt${gs.hours===h.v?' sel':''}" onclick="gs.hours='${h.v}';render();">
+      <div class="opt-main">${h.label}</div>
+      <div class="opt-sub">${h.desc}</div>
+    </button>`).join('');
+  const staffOpts=`
+    <button class="dec-opt" onclick="hireStaff()"><div class="opt-main">+ Hire</div><div class="opt-sub">$200 + $70/day</div></button>
+    <button class="dec-opt sel"><div class="opt-main">${gs.staffCount} helper${gs.staffCount>1?'s':''}</div><div class="opt-sub">$${gs.staffCount*70}/day</div></button>
+    ${gs.staffCount>1?`<button class="dec-opt" onclick="fireStaff()"><div class="opt-main">− Let go</div><div class="opt-sub">Save $70/day</div></button>`:''}`;
+
+  const decisions=`
+    <div class="section">
+      <div class="section-head"><span class="sh-title">🎛️ Today's Decisions</span></div>
+      <div class="dec-group"><div class="dec-label">🫘 BEAN SOURCE</div><div class="dec-opts">${beanOpts}</div></div>
+      <div class="dec-group"><div class="dec-label">💰 PRICE PER CUP</div><div class="dec-opts">${priceOpts}</div></div>
+      <div class="dec-group"><div class="dec-label">⏰ OPENING HOURS</div><div class="dec-opts">${hoursOpts}</div></div>
+      <div class="dec-group"><div class="dec-label">👷 STAFF (${gs.staffCount+1} people total incl. you)</div><div class="dec-opts">${staffOpts}</div></div>
+    </div>`;
+
+  const preview=calcDay();
+  const prevEl=`
+    <div class="section">
+      <div class="section-head"><span class="sh-title">📈 Today's Forecast</span><span class="sh-val">${fmtP(preview.profit)}</span></div>
+      <div class="section-body" style="font-size:12px;color:var(--muted);display:flex;flex-direction:column;gap:3px;">
+        <div>Expected customers: ~${preview.customers} cups</div>
+        <div>Revenue: ${fmt(preview.revenue)} · Costs: ${fmt(preview.beanCost+preview.staffCost+preview.rent)}</div>
+        ${gs.branches>1?`<div>Branch income: +${fmt(preview.branchInc)}/day</div>`:''}
+      </div>
+    </div>`;
+
+  document.getElementById('gfx-content').innerHTML = metrics + decisions + prevEl;
+  const fb = document.getElementById('footer-btn');
+  fb.textContent = 'Open For Business →';
+  fb.className = 'footer-btn';
+}
+
+function hireStaff(){if(gs.cash>=200){gs.cash-=200;gs.staffCount++;showToast('👷','New helper hired!');render();}else showToast('❌','Not enough cash to hire!');}
+function fireStaff(){if(gs.staffCount>1){gs.staffCount--;gs.staffMorale=clamp(gs.staffMorale-18,0,100);showToast('😔','Staff let go. Morale takes a hit.');render();};}
+
+function renderEvent(){
+  const ev=gs.pendingEvent;
+  if(!ev){gs.phase='morning';render();return;}
+  const choicesHtml=ev.choices.map((c,i)=>`
+    <button class="choice-btn" onclick="chooseOption(${i})">
+      <span class="ch-key">${String.fromCharCode(65+i)}</span>
+      <span class="ch-body"><span class="ch-label">${c.label}</span><span class="ch-note">${c.note||''}</span></span>
+    </button>`).join('');
+  document.getElementById('gfx-content').innerHTML=`
+    <div class="event-card">
+      <div class="event-head">
+        <div class="event-emoji-row"><span class="event-big-emoji">${ev.emoji}</span><div><div class="event-cat">${ev.cat}</div><div class="event-ttl">${ev.title}</div></div></div>
+        <div class="event-speaker">— ${ev.speaker}</div>
+      </div>
+      <div class="event-body"><p class="event-narrative">${ev.narrative}</p></div>
+      <div class="event-choices">${choicesHtml}</div>
+      <button class="advisor-btn" onclick="askAdvisor()">
+        <span style="font-size:16px">🤖</span><span>Ask Uncle Ah Kow for advice (AI)</span>
+      </button>
+    </div>`;
+  const fb=document.getElementById('footer-btn');
+  fb.textContent='Choose your response above';
+  fb.className='footer-btn secondary';
+  fb.onclick=null;
+}
+
+function renderEndDay(){
+  const r=gs.lastResults;
+  if(!r){gs.phase='morning';render();return;}
+  const profSign=r.profit>=0;
+  const rows=[
+    ['Customers served',r.customers+' cups'],
+    ['Revenue','+'+fmt(r.revenue),'pos'],
+    ['Bean costs','−'+fmt(r.beanCost),'neg'],
+    ['Staff wages','−'+fmt(r.staffCost),'neg'],
+    ['Stall rent','−'+fmt(r.rent),'neg'],
+  ];
+  if(r.branchInc>0)rows.push(['Branch income','+'+fmt(r.branchInc),'pos']);
+  const rowHtml=rows.map(([k,v,cls])=>`<div class="rcpt-row${cls?' '+cls:''}"><span class="rk">${k}</span><span class="rv ${cls||''}">${v}</span></div>`).join('');
+  const statRows=[
+    ['😊 Satisfaction',gs.satisfaction],['⭐ Reputation',gs.reputation],
+    ['👷 Morale',gs.staffMorale],['🫘 Bean Quality',gs.beanQuality],
+  ].map(([k,v])=>`<div class="rcpt-stat-row"><span class="rsk">${k}</span><span class="rnew ${v>=70?'pos':v<40?'neg':''}">${Math.round(v)}</span></div>`).join('');
+  document.getElementById('gfx-content').innerHTML=`
+    <div class="receipt">
+      <div class="rcpt-head">
+        <div class="rcpt-title">☕ CLOSING TIME — DAY ${gs.day}</div>
+        <div class="rcpt-sub">Kopi O King Tycoon · Branch ${gs.branches}</div>
+      </div>
+      <div class="rcpt-body">
+        ${rowHtml}
+        <div class="rcpt-row sep"><span class="rk" style="font-weight:700;">Net profit</span><span class="rv ${profSign?'pos':'neg'}" style="font-size:16px;">${profSign?'+':''}${fmt(r.profit)}</span></div>
+        <div class="rcpt-row" style="margin-top:8px;"><span class="rk">Cash balance</span><span class="rv pos">${fmt(gs.cash)}</span></div>
+      </div>
+      <div style="padding:8px 14px 12px;border-top:1px dashed #3a2208;">
+        <div style="font-size:10px;color:var(--muted);letter-spacing:1px;margin-bottom:8px;font-family:inherit;">STALL METRICS</div>
+        ${statRows}
+      </div>
+    </div>`;
+  const fb=document.getElementById('footer-btn');
+  fb.textContent=`Next Day (Day ${gs.day+1}) →`;
+  fb.className='footer-btn';
+  fb.onclick=footerAction;
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+async function init(){
+  try{await initDB();await loadGame();}catch(e){}
+  if(!gs.firedEvents||!(gs.firedEvents instanceof Set)) gs.firedEvents=new Set(gs.firedEvents||[]);
+  document.getElementById('footer-btn').onclick=footerAction;
+  render();
+  if(!localStorage.getItem(OB_KEY)){buildOnboarding();document.getElementById('onboard').style.display='flex';}
+}
 init();
 </script>
 </body>
